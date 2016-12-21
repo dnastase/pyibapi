@@ -13,10 +13,16 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 	CLOSE_POS   = close
 	UNKNOWN_POS = unknown
 """
+
+
+from utils import Object
+
+
 (SAME_POS, OPEN_POS, CLOSE_POS, UNKNOWN_POS) = range(4)
 
-class ComboLeg:
-    def __init__():
+
+class ComboLeg(Object):
+    def __init__(self):
         self.conId = 0  # type: int
         self.ratio = 0  # type: int
         self.action = ""      # BUY/SELL/SSHORT 
@@ -37,21 +43,38 @@ class ComboLeg:
 #			exchange == other.exchange &&
 #			designatedLocation == other.designatedLocation);
 
+    def __str__(self):
+        return ",".join((
+            str(self.conId),
+            str(self.ratio),
+            str(self.action),
+            str(self.exchange),
+            str(self.openClose),
+            str(self.shortSaleSlot),
+            str(self.designatedLocation),
+            str(self.exemptCode)))
 
-class UnderComp:
+ 
+class UnderComp(Object):
     def __init__(self):
         self.conId = 0   # type: int
         self.delta = 0.  # type: float
         self.price = 0.  # type: float
 
+    def __str__(self):
+        return ",".join((
+            str(self.conId),
+            str(self.delta),
+            str(self.price)))
+ 
 
-class Contract:
+class Contract(Object):
     def __init__(self):
         self.conId = 0
         self.symbol = ""
         self.secType = ""
         self.lastTradeDateOrContractMonth = ""
-        self.strike = 0
+        self.strike = 0.  # float !!
         self.right = ""
         self.multiplier = ""
         self.exchange = ""
@@ -69,7 +92,36 @@ class Contract:
         self.underComp = None
 
 
-class ContractDetails:
+    def __str__(self):
+        s = ",".join(( 
+            str(self.conId),
+            str(self.symbol),
+            str(self.secType),
+            str(self.lastTradeDateOrContractMonth),
+            str(self.strike),
+            str(self.right),
+            str(self.multiplier),
+            str(self.exchange),
+            str(self.primaryExchange),
+            str(self.currency),
+            str(self.localSymbol),
+            str(self.tradingClass),
+            str(self.includeExpired),
+            str(self.secIdType),
+            str(self.secId)))
+        s += "combo:" + self.comboLegsDescrip
+
+        if self.comboLegs:
+            for leg in self.comboLegs:
+                s += ";" + str(leg)
+
+        if self.underComp:
+            s += ";" + str(self.underComp)
+
+        return s
+
+ 
+class ContractDetails(Object):
     def __init__(self):
         self.summary = Contract()        
         self.marketName = ""
@@ -106,8 +158,45 @@ class ContractDetails:
         self.nextOptionPartial = False
         self.notes = "" 
 
-
-class ContractDescription:
+    def __str__(self):
+        s = ",".join((
+            str(self.summary), 
+            str(self.marketName),
+            str(self.minTick),
+            str(self.orderTypes),
+            str(self.validExchanges),
+            str(self.priceMagnifier),
+            str(self.underConId),
+            str(self.longName),
+            str(self.contractMonth),
+            str(self.industry),
+            str(self.category),
+            str(self.subcategory),
+            str(self.timeZoneId),
+            str(self.tradingHours),
+            str(self.liquidHours),
+            str(self.evRule),
+            str(self.evMultiplier),
+            str(self.secIdList),
+            str(self.cusip),
+            str(self.ratings),
+            str(self.descAppend),
+            str(self.bondType),
+            str(self.couponType),
+            str(self.callable),
+            str(self.putable),
+            str(self.coupon),
+            str(self.convertible),
+            str(self.maturity),
+            str(self.issueDate),
+            str(self.nextOptionDate),
+            str(self.nextOptionType),
+            str(self.nextOptionPartial),
+            str(self.notes)))
+        return s
+     
+ 
+class ContractDescription(Object):
     def __init__(self):
         self.contract = Contract()
         self.derivativeSecTypes = None   # type: vector<std::string>

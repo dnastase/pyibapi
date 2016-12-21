@@ -7,6 +7,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 """
 
 
+from utils import Object
 from softdollartier import SoftDollarTier
  
 # enum Origin
@@ -16,12 +17,16 @@ from softdollartier import SoftDollarTier
 (AUCTION_UNSET, AUCTION_MATCH, 
  AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT) = range(4)
 
-class OrderComboLeg:
+
+class OrderComboLeg(Object):
     def __init__(self):
         self.price = None  # type: float
 
+    def __str__(self):
+        return "%f" % self.price
+
  
-class Order(object):
+class Order(Object):
     def __init__(self):
         self.softDollarTier = SoftDollarTier("", "", "")
         # order identifier
@@ -139,8 +144,8 @@ class Order(object):
         # ALGO ORDERS ONLY
         self.algoStrategy          = ""
 
-        self.algoParams            = None    #TagValueListSPtr  
-        self.smartComboRoutingParams = None  #TagValueListSPtr   
+        self.algoParams            = None    #TagValueList  
+        self.smartComboRoutingParams = None  #TagValueList
 
         self.algoId = ""
 
@@ -158,7 +163,7 @@ class Order(object):
 
         self.orderComboLegs = None  # OrderComboLegListSPtr 
 
-        self.orderMiscOptions = None  # TagValueListSPtr 
+        self.orderMiscOptions = None  # TagValueList
 
         # VER PEG2BENCH fields:
         self.referenceContractId = 0
@@ -182,3 +187,28 @@ class Order(object):
         # ext operator
         self.extOperator = ""
 
+
+    def __str__(self):
+        s = "%s,%d,%s:" % (self.orderId, self.clientId, self.permId)
+
+        s += " %s %s %d@%f" % (
+            self.orderType,
+            self.action,
+            self.totalQuantity,
+            self.lmtPrice)
+
+        s += " %s" % self.tif
+
+        if self.orderComboLegs:
+            s += " CMB("
+            for leg in self.orderComboLegs:
+                s += str(leg) + ","
+            s += ")"
+
+        if self.conditions:
+            s += " COND("
+            for cond in self.conditions:
+                s += str(cond) + ","
+            s += ")"
+
+        return s

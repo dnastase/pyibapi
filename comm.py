@@ -26,8 +26,21 @@ def make_msg(text) -> bytes:
 
 def make_field(val) -> bytes:
     """ adds the NULL string terminator """
+
+    # bool type is encoded as int
+    if type(val) is bool:
+        val = int(val)
+
     field = str(val) + '\0'
     return field
+
+
+def make_field_handle_empty(val) -> bytes:
+
+    if val is None:
+        val = ""
+
+    return make_field(val)
 
 
 def read_msg(buf: bytes) -> tuple:

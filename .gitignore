@@ -1,2 +1,8 @@
 tags
 __pycache__/*
+log/*
+*.log
+log.*
+core
+out
+*.xml

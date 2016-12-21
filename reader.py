@@ -34,10 +34,10 @@ class Reader(Thread):
             LOGGER.debug("main loop, recvd buf %s", buf)
            
             while len(buf) > 0:
-                (size, text, buf) = comm.read_msg(buf)
-                LOGGER.debug("resp %s", buf.decode())
-                LOGGER.debug("size %d text %s buf:%s|", size, buf, "|")
-                self.msg_queue.put(text)
+                (size, msg, buf) = comm.read_msg(buf)
+                #LOGGER.debug("resp %s", buf.decode('ascii'))
+                LOGGER.debug("size:%d msg:|%s| buf:%s|", size, buf, "|")
+                self.msg_queue.put(msg)
 
         LOGGER.debug("Reader thread finished")
 

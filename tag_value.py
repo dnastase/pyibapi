@@ -6,8 +6,14 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
  IB API Commercial License, as applicable. 
 """
 
-from collections import namedtuple 
+from common import Object
 
-TagValue = namedtuple("TagValue", "tag value")
+class TagValue(Object):
+    def __init__(self, tag=None, value=None):
+        self.tag = tag
+        self.value = value
+
+    def __str__(self):
+        return "%s=%s;" % (self.tag, self.value)
 
  

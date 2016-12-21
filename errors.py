@@ -19,6 +19,12 @@ class CodeMsgPair:
         self.errorCode = code
         self.errorMsg = msg
 
+    def code(self):
+        return self.errorCode
+
+    def msg(self):
+        return self.errorMsg
+
 
 ALREADY_CONNECTED = CodeMsgPair(501,	"Already connected.")
 CONNECT_FAIL = CodeMsgPair(502, 

@@ -8,9 +8,16 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 
 
 import comm
+import decoder
+from utils import Object
+from utils import Enum
+from utils import decode
+
+#TODO: add support for Rebate, P/L, ShortableShares conditions 
+
 
  
-class OrderCondition:
+class OrderCondition(Object):
     Price = 1
     Time = 3
     Margin = 4
@@ -18,144 +25,269 @@ class OrderCondition:
     Volume = 6
     PercentChange = 7
 
-    def __init__(self):
-        self.condType = None
-        self.isConjunctionConnection = False
+    def __init__(self, condType):
+        self.condType = condType
+        self.isConjunctionConnection = True
 
-    def readExternal(self, fields):
-        connector = decode(str, fields)
+    def And(self):
+        self.isConjunctionConnection = True
+        return self
+
+    def Or(self):
+        self.isConjunctionConnection = False
+        return self
+
+    def decode(self, fields):
+        connector = decoder.decode(str, fields)
         self.isConjunctionConnection = connector == "a"
 
-    #TODO: complete !!
-    #void writeExternal(std::ostream &out) const;
-    #std::string toString();
-
+    def make_fields(self):
+        flds = []
+        flds.append(comm.make_field("a" if self.isConjunctionConnection else "o"))
+        return flds
+ 
+    def __str__(self):
+        return "<AND>" if self.isConjunctionConnection else "<OR>"
 
 
 class ExecutionCondition(OrderCondition):
-    def __init__(self):
-        OrderCondition.__init__(self)
-        self.secType = ""
-        self.exchange = ""
-        self.symbol = ""
 
-    def readExternal(self, fields):
-        OrderCondition.readExternal(self, fields)
+    def __init__(self, secType=None, exch=None, symbol=None):
+        OrderCondition.__init__(self, OrderCondition.Execution)
+        self.secType = secType
+        self.exchange = exch
+        self.symbol = symbol
+
+    def decode(self, fields):
+        OrderCondition.decode(self, fields)
         self.secType = decode(str, fields)
         self.exchange = decode(str, fields)
         self.symbol = decode(str, fields)
 
-    #std::string toString();
-    #void writeExternal(std::ostream &out) const;
-
+    def make_fields(self):
+        flds = OrderCondition.make_fields(self) + \
+            [comm.make_field(self.secType),
+            comm.make_field(self.exchange), 
+            comm.make_field(self.symbol)]
+        return flds
+ 
+    def __str__(self):
+        return "trade occurs for " + self.symbol + " symbol on " + self.exchange + " exchange for " + self.secType + " security type"
+        
 
 class OperatorCondition(OrderCondition):
-    def __init__(self):
-        OrderCondition.__init__(self)
-        self.isMore = False
+    def __init__(self, condType=None, isMore=None):
+        OrderCondition.__init__(self, condType)
+        self.isMore = isMore
 
-    #std::string valueToString() const = 0;
-    #void valueFromString(const std::string &v) = 0;
-    def readExternal(self, fields):
-        OrderCondition.readExternal(self, fields)
+    def valueToString(self) -> str:
+        raise NotImplementedError("abstractmethod!")
+
+    def setValueFromString(self, text: str) -> None:
+        raise NotImplementedError("abstractmethod!")
+
+    def decode(self, fields):
+        OrderCondition.decode(self, fields)
         self.isMore = decode(bool, fields)
-    #std::string toString();
-    #void writeExternal(std::ostream &out) const;
+        text = decode(str, fields)
+        self.setValueFromString(text)
 
+    def make_fields(self):
+        flds = OrderCondition.make_fields(self) + \
+            [comm.make_field(self.isMore),
+             comm.make_field(self.valueToString()), ]
+        return flds
 
+    def __str__(self):
+        sb = ">= " if self.isMore else "<= "
+        return " %s %s" % (sb, self.valueToString())
+ 
 
 class MarginCondition(OperatorCondition):
-    def __init__(self):
-        OperatorCondition.__init__(self)
-        self.percent = 0
+    def __init__(self, isMore=None, percent=None):
+        OperatorCondition.__init__(self, OrderCondition.Margin, isMore)
+        self.percent = percent
 
-    #static const OrderConditionType conditionType = OrderConditionType::Margin;
-    #std::string valueToString() const;
-    #void valueFromString(const std::string &v);
-    #std::string toString();
+    def decode(self, fields):
+        OperatorCondition.decode(self, fields)
 
+    def make_fields(self):
+        flds = OperatorCondition.make_fields(self)
+        return flds
+
+    def valueToString(self) -> str:
+        return str(self.percent)
+
+    def setValueFromString(self, text: str) -> None:
+        self.percent = float(text)
+ 
+    def __str__(self):
+        return "the margin cushion percent %s " % (
+            OperatorCondition.__str__(self))
+ 
 
 class ContractCondition(OperatorCondition):
-    def __init__(self):
-        OperatorCondition.__init__(self)
-        self.conId = 0
-        self.exchange = ""
+    def __init__(self, condType=None, conId=None, exch=None, isMore=None):
+        OperatorCondition.__init__(self, condType, isMore)
+        self.conId = conId
+        self.exchange = exch
 
-    #std::string toString();
-    def readExternal(self, fields):
-        OperatorCondition.readExternal(self, fields)
+    def decode(self, fields):
+        OperatorCondition.decode(self, fields)
         self.conId = decode(int, fields)
         self.exchange = decode(str, fields)
-    #void writeExternal(std::ostream &out) const;
 
+    def make_fields(self):
+        flds = OperatorCondition.make_fields(self) + \
+            [comm.make_field(self.conId),
+             comm.make_field(self.exchange), ]
+        return flds
+
+    def __str__(self):
+        return "%s on %s is %s " % (self.conId, self.exchange, 
+            OperatorCondition.__str__(self))
+ 
 
 class TimeCondition(OperatorCondition):
-    def __init__(self):
-        OperatorCondition.__init__(self)
-        self.time = ""
+    def __init__(self, isMore=None, time=None):
+        OperatorCondition.__init__(self, OrderCondition.Time, isMore)
+        self.time = time
 
-    #std::string valueToString() const;
-    #void valueFromString(const std::string &v);
-    #static const OrderConditionType conditionType = OrderConditionType::Time;
-    #std::string toString();
+    def decode(self, fields):
+        OperatorCondition.decode(self, fields)
 
-                              
+    def make_fields(self):
+        flds = OperatorCondition.make_fields(self)
+        return flds
+
+    def valueToString(self) -> str:
+        return self.time
+
+    def setValueFromString(self, text: str) -> None:
+        self.time = text
+ 
+    def __str__(self):
+        return "time is %s " % (OperatorCondition.__str__(self))  
+
+                          
 class PriceCondition(ContractCondition):
-    def __init__(self):
-        ContractCondition.__init__(self)
-        self.price = 0.
-        self.triggerMethod = 0
+    TriggerMethodEnum = Enum(
+          "Default", # = 0,
+          "DoubleBidAsk", # = 1,
+          "Last", # = 2,
+          "DoubleLast", # = 3,
+          "BidAsk", # = 4,
+          "N/A1",
+          "N/A2",
+          "LastBidAsk", #= 7,
+          "MidPoint") #= 8
+     
+    def __init__(self, triggerMethod=None, conId=None, exch=None, isMore=None, price=None):
+        ContractCondition.__init__(self, OrderCondition.Price, conId, exch, isMore)
+        self.price = price
+        self.triggerMethod = triggerMethod
 
-   #std::string valueToString() const;
-   #void valueFromString(const std::string &v);
-
-   #static const OrderConditionType conditionType = OrderConditionType::Price;
-   #enum Method {
-   #       Default = 0,
-   #       DoubleBidAsk = 1,
-   #       Last = 2,
-   #       DoubleLast = 3,
-   #       BidAsk = 4,
-   #       LastBidAsk = 7,
-   #       MidPoint = 8
-   #};
-   #std::string toString();
-    def readExternal(self, fields):
-        ContractCondition.readExternal(self, fields)
+    def decode(self, fields):
+        ContractCondition.decode(self, fields)
         self.triggerMethod = decode(int, fields)
-   #void writeExternal(std::ostream & out) const;
-   #
-   #Method triggerMethod();
+
+    def make_fields(self):
+        flds = ContractCondition.make_fields(self) + \
+            [comm.make_field(self.triggerMethod), ]
+        return flds
+
+    def valueToString(self) -> str:
+        return str(self.price)
+
+    def setValueFromString(self, text: str) -> None:
+        self.price = float(text)
+ 
+    def __str__(self):
+        return "%s price of %s " % (
+            PriceCondition.TriggerMethodEnum.to_str(self.triggerMethod), 
+            ContractCondition.__str__(self))
 
 
 class PercentChangeCondition(ContractCondition):
-    def __init__(self):
-        ContractCondition.__init__(self)
-        self.changePercent = None
+    def __init__(self, conId=None, exch=None, isMore=None, changePercent=None):
+        ContractCondition.__init__(self, OrderCondition.PercentChange, conId, exch, isMore)
+        self.changePercent = changePercent
 
-    #virtual std::string valueToString() const;
-    #virtual void valueFromString(const std::string &v);
-    #static const OrderConditionType conditionType = OrderConditionType::PercentChange;
+    def decode(self, fields):
+        ContractCondition.decode(self, fields)
 
+    def make_fields(self):
+        flds = ContractCondition.make_fields(self)
+        return flds
+
+    def valueToString(self) -> str:
+        return str(self.changePercent)
+
+    def setValueFromString(self, text: str) -> None:
+        self.changePercent = float(text)
+
+    def __str__(self):
+        return "percent change of %s " % (
+            ContractCondition.__str__(self))
+  
+
+class VolumeCondition(ContractCondition):
+    def __init__(self, conId=None, exch=None, isMore=None, volume=None):
+        ContractCondition.__init__(self, OrderCondition.Volume, conId, exch, isMore)
+        self.volume = volume
+
+    def decode(self, fields):
+        ContractCondition.decode(self, fields)
+
+    def make_fields(self):
+        flds = ContractCondition.make_fields(self)
+        return flds
+
+    def valueToString(self) -> str:
+        return str(self.volume)
+
+    def setValueFromString(self, text: str) -> None:
+        self.volume = int(text)
+
+    def __str__(self):
+        return "volume of %s " % (
+            ContractCondition.__str__(self))
+ 
 
 def Create(condType):
     cond = None
 
-    if Execution == condType:
+    if OrderCondition.Execution == condType:
         cond = ExecutionCondition()
-    elif Margin == condType:
+    elif OrderCondition.Margin == condType:
         cond = MarginCondition()
-    elif PercentChange == condType:
+    elif OrderCondition.PercentChange == condType:
         cond = PercentChangeCondition()
-    elif Price == condType:
+    elif OrderCondition.Price == condType:
         cond = PriceCondition()
-    elif Time == condType:
+    elif OrderCondition.Time == condType:
         cond = TimeCondition()
-    elif Volume == condType:
+    elif OrderCondition.Volume == condType:
         cond = VolumeCondition()
 
-    if cond is not None:
-        cond.condType = condType
-
     return cond
-  
+
+
+def Test():
+    conds = [
+        VolumeCondition(8314, "SMART", True, 1000000).And(),
+        PercentChangeCondition(1111, "AMEX", True, 0.25).Or(),
+        PriceCondition(
+            PriceCondition.TriggerMethodEnum.DoubleLast,
+            2222, "NASDAQ", False, 4.75).And(),
+        TimeCondition(True, "20170101 09:30:00").And(),
+        MarginCondition(False, 200000).Or(),
+        ExecutionCondition("STK", "SMART", "AMD")
+    ]
+
+    for cond in conds:
+        print(cond, OrderCondition.__str__(cond))
+
+if "__main__" == __name__:
+    Test()
+ 
