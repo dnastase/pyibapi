@@ -29,6 +29,7 @@ from logger import LOGGER
 from server_versions import *
 from utils import *
 from softdollartier import SoftDollarTier
+from ticktype import *
 
 
 #TODO: remove all semi-colons !!
@@ -53,7 +54,7 @@ class Decoder:
         sMsgId = next(fields)
         version = decode(int, fields)
 
-        tickerId = decode(int, fields)
+        reqId = decode(int, fields)
         tickType = decode(int, fields)
         price = decode(float, fields)
         size = decode(int, fields) # ver 2 field
@@ -67,7 +68,7 @@ class Decoder:
             attrib.canAutoExecute = attrMask & 1 != 0
             attrib.pastLimit = attrMask & 2 != 0
 
-        self.wrapper.tickPrice(tickerId, tickType, price, attrib)
+        self.wrapper.tickPrice(reqId, tickType, price, attrib)
 
         # process ver 2 fields
         sizeTickType = TickTypeEnum.NOT_SET
@@ -79,7 +80,7 @@ class Decoder:
             sizeTickType = TickTypeEnum.LAST_SIZE
 
         if sizeTickType != TickTypeEnum.NOT_SET:
-            self.wrapper.tickSize(tickerId, sizeTickType, size)
+            self.wrapper.tickSize(reqId, sizeTickType, size)
 
 
     def processOrderStatusMsg(self, fields):
@@ -295,7 +296,7 @@ class Decoder:
 
         order.scalePriceIncrement = decode(float, fields, SHOW_UNSET) # ver 15 field
 
-        if version >= 28 and order.scalePriceIncrement is not None \
+        if version >= 28 and order.scalePriceIncrement != UNSET_DOUBLE \
                 and order.scalePriceIncrement > 0.0:
             order.scalePriceAdjustValue = decode(float, fields, SHOW_UNSET)
             order.scalePriceAdjustInterval = decode(int, fields, SHOW_UNSET)
@@ -557,7 +558,7 @@ class Decoder:
     def processScannerDataMsg(self, fields):
         sMsgId = next(fields)
         version = decode(int, fields)
-        tickerId = decode(int, fields)
+        reqId = decode(int, fields)
 
         numberOfElements = decode(int, fields)
 
@@ -580,10 +581,10 @@ class Decoder:
             data.benchmark = decode(str, fields)
             data.projection = decode(str, fields)
             data.legsStr = decode(str, fields)
-            self.wrapper.scannerData(tickerId, data.rank, data.contract,
+            self.wrapper.scannerData(reqId, data.rank, data.contract,
                 data.distance, data.benchmark, data.projection, data.legsStr)
 
-        self.wrapper.scannerDataEnd(tickerId)
+        self.wrapper.scannerDataEnd(reqId)
      
 
     def processExecutionDataMsg(self, fields):
@@ -693,7 +694,7 @@ class Decoder:
 
         sMsgId = next(fields)
         version = decode(int, fields)
-        tickerId = decode(int, fields)
+        reqId = decode(int, fields)
         tickTypeInt = decode(int, fields)
 
         impliedVol = decode(float, fields)
@@ -730,7 +731,7 @@ class Decoder:
             if undPrice < 0:             # -1 is the "not computed" indicator
                 undPrice = None
 
-        self.wrapper.tickOptionComputation(tickerId, tickTypeInt, impliedVol, 
+        self.wrapper.tickOptionComputation(reqId, tickTypeInt, impliedVol, 
             delta, optPrice, pvDividend, gamma, vega, theta, undPrice)
 
 

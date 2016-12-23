@@ -7,10 +7,11 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 """
 
 
+from common import UNSET_INTEGER, UNSET_DOUBLE
 import comm
 import decoder
-from utils import Object
-from utils import Enum
+from object_implem import Object
+from enum_implem import Enum
 from utils import decode
 
 #TODO: add support for Rebate, P/L, ShortableShares conditions 
@@ -209,7 +210,8 @@ class PriceCondition(ContractCondition):
 
 
 class PercentChangeCondition(ContractCondition):
-    def __init__(self, conId=None, exch=None, isMore=None, changePercent=None):
+    def __init__(self, conId=None, exch=None, isMore=None,
+                 changePercent=UNSET_DOUBLE):
         ContractCondition.__init__(self, OrderCondition.PercentChange, conId, exch, isMore)
         self.changePercent = changePercent
 

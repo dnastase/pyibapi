@@ -14,6 +14,8 @@ This module has tools for implementing the IB low level messaging.
 
 
 import struct
+
+from common import UNSET_INTEGER, UNSET_DOUBLE
 from logger import LOGGER
 
 
@@ -27,6 +29,9 @@ def make_msg(text) -> bytes:
 def make_field(val) -> bytes:
     """ adds the NULL string terminator """
 
+    if val is None:
+        raise ValueError("Cannot send None to TWS")
+
     # bool type is encoded as int
     if type(val) is bool:
         val = int(val)
@@ -38,6 +43,9 @@ def make_field(val) -> bytes:
 def make_field_handle_empty(val) -> bytes:
 
     if val is None:
+        raise ValueError("Cannot send None to TWS")
+
+    if UNSET_INTEGER == val or UNSET_DOUBLE == val:
         val = ""
 
     return make_field(val)
@@ -58,21 +66,4 @@ def read_fields(buf: bytes) -> tuple:
     return fields[0:-1]   #last one is empty; this may slow dow things though, TODO
 
 
-def send_msg(the_socket, msg):
-    the_socket.send(msg)
-
-
-def recv_msg(the_socket):
-    cont = True
-    allbuf = b""
-
-    while cont:
-        buf = the_socket.recv(4096)
-        allbuf += buf
-        LOGGER.debug("len %d raw:%s|", len(buf), buf)
-
-        if len(buf) < 4096:
-            cont = False
-
-    return allbuf  
-  
+ 

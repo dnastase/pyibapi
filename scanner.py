@@ -7,7 +7,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
  IB API Commercial License, as applicable. 
 """
 
-from utils import Object
+from object_implem import Object
 
 
 class ScanData(Object):

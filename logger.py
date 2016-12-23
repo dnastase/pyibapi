@@ -11,6 +11,11 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 
 import logging
 import time
+import os.path
+
+
+if not os.path.exists("log"):
+    os.makedirs("log")
 
 time.strftime("pyibapi.%Y%m%d_%H%M%S.log")
 
@@ -21,11 +26,17 @@ timefmt = '%y%m%d_%H:%M:%S'
 #TODO: the choice if to rewrite log should possibly come from cmd line switch
 #logging.basicConfig( level=logging.DEBUG, 
 #                    format=recfmt, datefmt=timefmt)
-logging.basicConfig(filename=time.strftime("pyibapi.%y%m%d_%H%M%S.log") , 
+logging.basicConfig(filename=time.strftime("log/pyibapi.%y%m%d_%H%M%S.log") , 
                     filemode="w",
                     level=logging.DEBUG, 
                     format=recfmt, datefmt=timefmt)
 LOGGER = logging.getLogger("pyibapi")
+
+console = logging.StreamHandler()
+console.setLevel(logging.ERROR)
+
+
+LOGGER.addHandler(console)
 
 #TODO:logging module is SLOW !
 

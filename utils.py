@@ -14,38 +14,19 @@ Collection of misc tools
 
 
 import sys
+
+from common import UNSET_INTEGER, UNSET_DOUBLE
 from logger import LOGGER
 
-
-class Object(object):
-
-    def __str__(self):
-        return "Object"
-
-    def __repr__(self):
-        return self.__str__()
+# I use this just to visually emphasize it's a wrapper overriden method
+def iswrapper(fn):
+    return fn
 
 
 class BadMessage(Exception):
     def __init__(self, text):
         self.text = text
 
-
-class Enum:
-    def __init__(self, *args):
-        self.idx2name = {}
-        for (idx, name) in enumerate(args):
-            setattr(self, name, idx)
-            self.idx2name[idx] = name
-
-    def to_str(self, idx):
-        return self.idx2name.get(idx, "NOTFOUND")
-
-
-def test_enum():
-    e = Enum("ZERO", "ONE", "TWO")
-    print(e.ZERO)
-    print(e.to_str(e.ZERO))
 
 
 def crt_fn_name(parent_idx = 0):
@@ -74,7 +55,7 @@ def decode(the_type, fields, show_unset = False):
         elif type(s) is bytes:
             return s.decode()
         else:
-            raise TypeError("unsupported type " + type(s))
+            raise TypeError("unsupported incoming type " + type(s) + " for desired type 'str")
     
     orig_type = the_type
     if the_type is bool:
@@ -82,7 +63,12 @@ def decode(the_type, fields, show_unset = False):
         
     if show_unset:
         if s is None or len(s) == 0:
-            n = None
+            if the_type is float:
+                n = UNSET_DOUBLE
+            elif the_type is int:
+                n = UNSET_INTEGER
+            else:
+                raise TypeError("unsupported desired type for empty value" + the_type)
         else:
             n = the_type(s)
     else:
@@ -93,7 +79,19 @@ def decode(the_type, fields, show_unset = False):
 
     return n
 
- 
+
+def ExerciseStaticMethods(klass):
+    
+    import types, inspect
+    #import code; code.interact(local=dict(globals(), **locals()))
+    for (name, var) in inspect.getmembers(klass):
+        #print(name, var, type(var))
+        if type(var) == types.FunctionType:
+            print("Exercising: %s:" % var)
+            print(var())
+            print()
+  
+
 def test_setattr_log():
     class A:
         def __init__(self):
@@ -121,7 +119,7 @@ def test_polymorphism():
 
 
 if __name__ == "__main__":
+    pass
     #test_setattr_log()
     #test_poly()
-    test_enum()
  

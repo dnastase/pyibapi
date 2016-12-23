@@ -33,51 +33,80 @@ from contract import UnderComp
 from order import Order
 from order_state import OrderState
 from execution import Execution
-from ticktype import TickType
+from ticktype import *
 from commission_report import CommissionReport
 
 
-class TickAttrib:
-    def __init__(self):
-        self.canAutoExecute = False
-        self.pastLimit = False
 
- 
 
 class Wrapper:
     def logAnswer(self, fnName, fnParams):
-        LOGGER.debug("ANSWER %s %s", fnName, fnParams)
+        #TODO: do this only if turned on, it's expensive
+        if 'self' in fnParams:
+            prms = dict(fnParams)
+            del prms['self']
+        else:
+            prms = fnParams
+        LOGGER.debug("ANSWER %s %s", fnName, prms)
 
 
-    def tickPrice(self, tickerId:TickerId , tickType:TickType, price:float, 
-                  attrib):
+    def error(self, id, errorCode:int, errorString:str):
+        """This event is called when there is an error with the
+        communication or when TWS wants to send a message to the client."""
+
+        #self.logAnswer(crt_fn_name(), vars()) 
+        LOGGER.error("ERROR %s %s %s", id, errorCode, errorString)
+
+ 
+    def winError(self, text:str, lastError:int):
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def tickSize(self, tickerId:TickerId, tickType:TickType, size:int):
+    def connectAck(self):
         self.logAnswer(crt_fn_name(), vars()) 
 
-
-    def tickOptionComputation(self, tickerId:TickerId, tickType:TickType ,
-            impliedVol:float, delta:float, optPrice:float, pvDividend:float, 
-            gamma:float, vega:float, theta:float, undPrice:float):
-        """This function is called when the market in an option or its
-        underlier moves. TWS's option model volatilities, prices, and
-        deltas, along with the present value of dividends expected on that
-        options underlier are received."""
+ 
+    def tickPrice(self, reqId:TickerId , tickType:TickType, price:float, 
+                  attrib:TickAttrib):
+        """Market data tick price callback. Handles all price related ticks."""
 
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def tickGeneric(self, tickerId:TickerId, tickType:TickType, value:float):
+    def tickSize(self, reqId:TickerId, tickType:TickType, size:int):
+        """Market data tick size callback. Handles all size-related ticks."""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def tickString(self, tickerId:TickerId, tickType:TickType, value:str):
+    def tickSnapshotEnd(self, reqId:int):
+        """When requesting market data snapshots, this market will indicate the
+        snapshot reception is finished. """
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def tickEFP(self, tickerId:TickerId, tickType:TickType, basisPoints:float, 
+    def marketDataType(self, reqId:TickerId , marketDataType:int):
+        """TWS sends a marketDataType(type) callback to the API, where
+        type is set to Frozen or RealTime, to announce that market data has been
+        switched between frozen and real-time. This notification occurs only
+        when market data switches between real-time and frozen. The
+        marketDataType( ) callback accepts a reqId parameter and is sent per
+        every subscription because different contracts can generally trade on a
+        different schedule."""
+
+        self.logAnswer(crt_fn_name(), vars()) 
+ 
+
+    def tickGeneric(self, reqId:TickerId, tickType:TickType, value:float):
+        self.logAnswer(crt_fn_name(), vars()) 
+
+
+    def tickString(self, reqId:TickerId, tickType:TickType, value:str):
+        self.logAnswer(crt_fn_name(), vars()) 
+
+
+    def tickEFP(self, reqId:TickerId, tickType:TickType, basisPoints:float, 
                 formattedBasisPoints:str, totalDividends:float, 
                 holdDays:int, futureLastTradeDate:str, dividendImpact:float, 
                 dividendsToLastTradeDate:float):
@@ -88,24 +117,53 @@ class Wrapper:
                     remaining:float, avgFillPrice:float, permId:int, 
                     parentId:int, lastFillPrice:float, clientId:int, 
                     whyHeld:str):
+        """This event is called whenever the status of an order changes. It is
+        also fired after reconnecting to TWS if the client has any open orders.
+
+        id: OrderId - The order ID that was specified previously in the call to placeOrder()
+        status:str - The order status. Possible values include:
+            PendingSubmit - indicates that you have transmitted the order, but have not  yet received confirmation that it has been accepted by the order destination. NOTE: This order status is not sent by TWS and should be explicitly set by the API developer when an order is submitted.
+            PendingCancel - indicates that you have sent a request to cancel the order but have not yet received cancel confirmation from the order destination. At this point, your order is not confirmed canceled. You may still receive an execution while your cancellation request is pending. NOTE: This order status is not sent by TWS and should be explicitly set by the API developer when an order is canceled.
+            PreSubmitted - indicates that a simulated order type has been accepted by the IB system and that this order has yet to be elected. The order is held in the IB system until the election criteria are met. At that time the order is transmitted to the order destination as specified.
+            Submitted - indicates that your order has been accepted at the order destination and is working.
+            Cancelled - indicates that the balance of your order has been confirmed canceled by the IB system. This could occur unexpectedly when IB or the destination has rejected your order.
+            Filled - indicates that the order has been completely filled.
+            Inactive - indicates that the order has been accepted by the system (simulated orders) or an exchange (native orders) but that currently the order is inactive due to system, exchange or other issues.
+        filled:int - Specifies the number of shares that have been executed.
+            For more information about partial fills, see Order Status for Partial Fills.
+        remaining:int -   Specifies the number of shares still outstanding.
+        avgFillPrice:float - The average price of the shares that have been executed. This parameter is valid only if the filled parameter value is greater than zero. Otherwise, the price parameter will be zero.
+        permId:int -  The TWS id used to identify orders. Remains the same over TWS sessions.
+        parentId:int - The order ID of the parent order, used for bracket and auto trailing stop orders.
+        lastFilledPrice:float - The last price of the shares that have been executed. This parameter is valid only if the filled parameter value is greater than zero. Otherwise, the price parameter will be zero.
+        clientId:int - The ID of the client (or TWS) that placed the order. Note that TWS orders have a fixed clientId and orderId of 0 that distinguishes them from API orders.
+        whyHeld:str - This field is used to identify an order held when TWS is trying to locate shares for a short sell. The value used to indicate this is 'locate'.
+
+        """
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def openOrder(self, orderId:OrderId, contract:Contract, order:Order, 
                   orderState:OrderState):
+        """This function is called to feed in open orders.
+
+        orderID: OrderId - The order ID assigned by TWS. Use to cancel or 
+            update TWS order.
+        contract: Contract - The Contract class attributes describe the contract.
+        order: Order - The Order class gives the details of the open order.
+        orderState: OrderState - The orderState class includes attributes Used 
+            for both pre and post trade margin and commission data."""
+
         self.logAnswer(crt_fn_name(), vars()) 
         LOGGER.debug("Order: %s %s %d %f %s", contract.symbol, order.action, order.totalQuantity, order.lmtPrice, order.permId)
 
 
     def openOrderEnd(self):
+        """This is called at the end of a given request for open orders."""
+
         self.logAnswer(crt_fn_name(), vars()) 
         
-
-    def winError(self, text:str, lastError:int):
-        self.logAnswer(crt_fn_name(), vars()) 
-
-    def connectAck(self):
-        self.logAnswer(crt_fn_name(), vars()) 
 
 
     def connectionClosed(self):
@@ -149,8 +207,9 @@ class Wrapper:
 
 
     def contractDetails(self, reqId:int, contractDetails:ContractDetails):
-        """This function is called only when reqContractDetails function
-        on the EClientSocket object has been called."""
+        """Receives the full contract's definitons. This method will return all
+        contracts matching the requested via EClientSocket::reqContractDetails. 
+        For example, one can obtain the whole option chain with it."""
 
         self.logAnswer(crt_fn_name(), vars()) 
 
@@ -184,12 +243,6 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def error(self, id, errorCode:int, errorString:str):
-        """This event is called when there is an error with the
-        communication or when TWS wants to send a message to the client."""
-
-        self.logAnswer(crt_fn_name(), vars()) 
-        
 
     def updateMktDepth(self, id:TickerId , position:int, operation:int,
                         side:int, price:float, size:int):
@@ -262,23 +315,6 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def tickSnapshotEnd(self, reqId:int):
-        """This is called after a batch updateAccountValue() and
-        updatePortfolio() is sent."""
-
-        self.logAnswer(crt_fn_name(), vars()) 
-
-
-    def marketDataType(self, reqId:TickerId , marketDataType:int):
-        """TWS sends a marketDataType(type) callback to the API, where
-        type is set to Frozen or RealTime, to announce that market data has been
-        switched between frozen and real-time. This notification occurs only
-        when market data switches between real-time and frozen. The
-        marketDataType( ) callback accepts a reqId parameter and is sent per
-        every subscription because different contracts can generally trade on a
-        different schedule."""
-
-        self.logAnswer(crt_fn_name(), vars()) 
 
     def commissionReport(self, commissionReport:CommissionReport):
         """The commissionReport() callback is triggered as follows:
@@ -304,7 +340,7 @@ class Wrapper:
 
 
     def accountSummary(self, reqId:int, account:str, tag:str, value:str, 
-                       curency:str):
+                       currency:str):
         """Returns the data from the TWS Account Window Summary tab in
         response to reqAccountSummary()."""
 
@@ -397,9 +433,17 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    SetOfString = set
-    SetOfFloat = set
-    def securityDefinitionOptionalParameter(self, reqId:int, exchange:str,
+    def tickOptionComputation(self, reqId:TickerId, tickType:TickType ,
+            impliedVol:float, delta:float, optPrice:float, pvDividend:float, 
+            gamma:float, vega:float, theta:float, undPrice:float):
+        """This function is called when the market in an option or its
+        underlier moves. TWS's option model volatilities, prices, and
+        deltas, along with the present value of dividends expected on that
+        options underlier are received."""
+
+        self.logAnswer(crt_fn_name(), vars()) 
+ 
+    def securityDefinitionOptionParameter(self, reqId:int, exchange:str,
         underlyingConId:int, tradingClass:str, multiplier:str, 
         expirations:SetOfString, strikes:SetOfFloat):
         """ gets called w/ the future and option contracts for an underlying"""
@@ -407,7 +451,7 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def securityDefinitionOptionalParameterEnd(self, reqId:int):
+    def securityDefinitionOptionParameterEnd(self, reqId:int):
         self.logAnswer(crt_fn_name(), vars()) 
 
 

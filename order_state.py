@@ -6,6 +6,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
  IB API Commercial License, as applicable. 
 """
 
+from common import UNSET_INTEGER, UNSET_DOUBLE
 
 
 class OrderState:
@@ -16,9 +17,9 @@ class OrderState:
       self.maintMargin= ""
       self.equityWithLoan= ""
 
-      self.commission = None      # type: float
-      self.minCommission = None   # type: float
-      self.maxCommission = None   # type: float
+      self.commission = UNSET_DOUBLE      # type: float
+      self.minCommission = UNSET_DOUBLE   # type: float
+      self.maxCommission = UNSET_DOUBLE   # type: float
       self.commissionCurrency = ""
       self.warningText = ""
 

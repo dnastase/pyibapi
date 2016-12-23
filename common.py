@@ -7,14 +7,17 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
  IB API Commercial License, as applicable. 
 """
 
+import sys
 
-from utils import Enum
-from utils import Object
+from enum_implem import Enum
+from object_implem import Object
 
 
 NO_VALID_ID = -1
 MAX_MSG_LEN = 0xFFFFFF # 16Mb - 1byte
 
+UNSET_INTEGER = 2 ** 31 - 1
+UNSET_DOUBLE = sys.float_info.max
  
 TickerId = int
 OrderId  = int
@@ -25,6 +28,10 @@ faDataTypeEnum = Enum("GROUPS", "PROFILES", "ALIASES")
 
 MarketDataType = int
 MarketDataTypeEnum = Enum("REALTIME", "FROZEN", "DELAYED", "DELAYED_FROZEN")
+
+SetOfString = set
+SetOfFloat = set
+ListOfOrder = list
 
 
 class BarData(Object):

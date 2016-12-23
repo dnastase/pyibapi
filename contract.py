@@ -15,7 +15,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 """
 
 
-from utils import Object
+from object_implem import Object
 
 
 (SAME_POS, OPEN_POS, CLOSE_POS, UNKNOWN_POS) = range(4)

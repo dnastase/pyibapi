@@ -12,7 +12,9 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 TickType type
 """
 
-from utils import Enum
+from enum_implem import Enum
+from object_implem import Object
+
 
 # TickType
 TickType = int
@@ -97,4 +99,6 @@ TickTypeEnum = Enum("BID_SIZE",
                 "CREDITMAN_MARK_PRICE",
                 "CREDITMAN_SLOW_MARK_PRICE",
                 "NOT_SET")
+
+
   

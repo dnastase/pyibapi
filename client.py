@@ -14,6 +14,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 import time
 from queue import Queue
 
+from common import UNSET_INTEGER, UNSET_DOUBLE
 from connection import Connection
 import decoder
 import reader
@@ -249,7 +250,7 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), 
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), 
                                NOT_CONNECTED.msg())
             return
 
@@ -270,19 +271,22 @@ class Client(object):
     ##########################################################################
 
 
-    def reqMktData(self, tickerId: TickerId, contract: Contract,
+    def reqMktData(self, reqId: TickerId, contract: Contract,
                     genericTickList: str, snapshot: bool,
                     mktDataOptions: TagValueList):
         """Call this function to request market data. The market data
         will be returned by the tickPrice and tickSize events.
 
-        tickerId: TickerId - The ticker id. Must be a unique value. When the 
+        reqId: TickerId - The ticker id. Must be a unique value. When the 
             market data returns, it will be identified by this tag. This is 
             also used when canceling the market data.
         contract:Contract - This structure contains a description of the 
             Contractt for which market data is being requested.
-        genericTicks:str - A commma delimited list of generic tick types. Tick 
-            types can be found in the Generic Tick Types page.
+        genericTickList:str - A commma delimited list of generic tick types. 
+            Tick types can be found in the Generic Tick Types page.
+            Prefixing w/ 'mdoff' indicates that top mkt data shouldn't tick.
+            You can specify the news source by postfixing w/ ':<source>.
+            Example: "mdoff,292:FLY+BRF"
         snapshot:bool - Check to return a single snapshot of Marketet data and h
             ave the market data subscription cancel. Do not enter any 
             genericTicklist values if you use snapshot.
@@ -291,25 +295,25 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), 
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), 
                                NOT_CONNECTED.msg())
             return
 
         if self.serverVersion < MIN_SERVER_VER_UNDER_COMP:
             if contract.underComp:
-                self.wrapper.error(tickerId, UPDATE_TWS.code(), 
+                self.wrapper.error(reqId, UPDATE_TWS.code(), 
                     UPDATE_TWS.msg() + "  It does not support delta-neutral orders.")
                 return
 
         if self.serverVersion < MIN_SERVER_VER_REQ_MKT_DATA_CONID:
             if contract.conId > 0:
-                self.wrapper.error(tickerId, UPDATE_TWS.code(), 
+                self.wrapper.error(reqId, UPDATE_TWS.code(), 
                     UPDATE_TWS.msg() + "  It does not support conId parameter.")
                 return
 
         if self.serverVersion < MIN_SERVER_VER_TRADING_CLASS:
             if contract.tradingClass:
-                self.wrapper.error( tickerId, UPDATE_TWS.code(), 
+                self.wrapper.error( reqId, UPDATE_TWS.code(), 
                     UPDATE_TWS.msg() + "  It does not support tradingClass parameter in reqMktData.")
                 return
 
@@ -319,7 +323,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.REQ_MKT_DATA),
             make_field(VERSION),
-            make_field(tickerId)]
+            make_field(reqId)]
 
         # send contract fields
         if self.serverVersion >= MIN_SERVER_VER_REQ_MKT_DATA_CONID:
@@ -341,7 +345,7 @@ class Client(object):
 
         # Send combo legs for BAG requests (srv v8 and above)
         if contract.secType == "BAG":
-            comboLegsCount = len(comboLegs) if contracts.comboLegs else 0 
+            comboLegsCount = len(contract.comboLegs) if contract.comboLegs else 0 
             flds += [make_field(comboLegsCount),]
             for comboLeg in contract.comboLegs:
                     flds += [make_field(comboLeg.conId),
@@ -374,16 +378,16 @@ class Client(object):
         self.send_msg(msg)
 
 
-    def cancelMktData(self, tickerId: TickerId):
+    def cancelMktData(self, reqId: TickerId):
         """After calling this function, market data for the specified id
         will stop flowing.
 
-        tickerId: TickerId - The ID that was specified in the call to 
-            reqMktDepthData(). """
+        reqId: TickerId - The ID that was specified in the call to 
+            reqMktData(). """
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
          
         VERSION = 2
@@ -392,7 +396,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.CANCEL_MKT_DATA),
             make_field(VERSION),
-            make_field(tickerId)]
+            make_field(reqId)]
 
         msg = "".join(flds)
         self.send_msg(msg)
@@ -412,11 +416,11 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
         if self.serverVersion < MIN_SERVER_VER_REQ_MARKET_DATA_TYPE:
-            self.wrapper.error(tickerId, UPDATE_TWS.code(), 
+            self.wrapper.error(reqId, UPDATE_TWS.code(), 
                 UPDATE_TWS.msg() + "  It does not support market data type requests.")
             return
           
@@ -450,7 +454,7 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
         if self.serverVersion < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
@@ -502,7 +506,7 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
  
         if self.serverVersion < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
@@ -532,7 +536,7 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
         if self.serverVersion < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
@@ -584,7 +588,7 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
  
         if self.serverVersion < MIN_SERVER_VER_REQ_CALC_IMPLIED_VOLAT:
@@ -602,7 +606,7 @@ class Client(object):
         self.send_msg(msg)
  
 
-    def exerciseOptions(tickerId:TickerId , contract:Contract,
+    def exerciseOptions(reqId:TickerId , contract:Contract,
                         exerciseAction:int, exerciseQuantity:int,
                         account:str, override:int):
         """id:TickerId - The ticker id. multipleust be a unique value.
@@ -622,7 +626,7 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
         if self.serverVersion < MIN_SERVER_VER_TRADING_CLASS:
@@ -637,7 +641,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.EXERCISE_OPTIONS),
             make_field(VERSION),
-            make_field(tickerId)]
+            make_field(reqId)]
         # send contract fields
         if self.serverVersion >= MIN_SERVER_VER_TRADING_CLASS:
             make_field(contract.conId);
@@ -679,7 +683,7 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
  
         if self.serverVersion < MIN_SERVER_VER_UNDER_COMP:
@@ -763,13 +767,13 @@ class Client(object):
                 return
 
         if self.serverVersion < MIN_SERVER_VER_SCALE_ORDERS3:
-            if order.scalePriceIncrement > 0 and order.scalePriceIncrement:
-                if order.scalePriceAdjustValue \
-                        or order.scalePriceAdjustInterval \
-                        or order.scaleProfitOffset \
+            if order.scalePriceIncrement > 0 and order.scalePriceIncrement != UNSET_DOUBLE:
+                if order.scalePriceAdjustValue != UNSET_DOUBLE \
+                        or order.scalePriceAdjustInterval != UNSET_INTEGER \
+                        or order.scaleProfitOffset != UNSET_DOUBLE \
                         or order.scaleAutoReset  \
-                        or order.scaleInitPosition \
-                        or order.scaleInitFillQty \
+                        or order.scaleInitPosition != UNSET_INTEGER \
+                        or order.scaleInitFillQty != UNSET_INTEGER \
                         or order.scaleRandomPercent:
                     self.wrapper.error( id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                             "  It does not support Scale order parameters: PriceAdjustValue, PriceAdjustInterval, " +
@@ -779,13 +783,13 @@ class Client(object):
         if self.serverVersion < MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE and contract.secType == "BAG":
             if order.orderComboLegs:
                 for orderComboLeg in order.orderComboLegs:
-                    if orderComboLeg.price:
+                    if orderComboLeg.price != UNSET_DOUBLE:
                         self.wrapper.error( id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                                 "  It does not support per-leg prices for order combo legs.")
                         return
 
         if self.serverVersion < MIN_SERVER_VER_TRAILING_PERCENT:
-            if order.trailingPercent:
+            if order.trailingPercent != UNSET_DOUBLE:
                 self.wrapper.error( id, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                         "  It does not support trailing percent parameter")
                 return
@@ -872,11 +876,13 @@ class Client(object):
 
         flds.append(make_field(order.orderType))
         if self.serverVersion < MIN_SERVER_VER_ORDER_COMBO_LEGS_PRICE:
-            flds.append(make_field(order.lmtPrice or 0))
+            flds.append(make_field(
+                order.lmtPrice if order.lmtPrice != UNSET_DOUBLE else 0))
         else:
             flds.append(make_field_handle_empty( order.lmtPrice))
         if self.serverVersion < MIN_SERVER_VER_TRAILING_PERCENT:
-            flds.append(make_field(order.auxPrice or 0))
+            flds.append(make_field(
+                order.auxPrice if order.auxPrice != UNSET_DOUBLE else 0))
         else:
             flds.append(make_field_handle_empty( order.auxPrice))
 
@@ -1026,7 +1032,8 @@ class Client(object):
         flds.append(make_field_handle_empty( order.scalePriceIncrement))
 
         if self.serverVersion >= MIN_SERVER_VER_SCALE_ORDERS3 \
-            and order.scalePriceIncrement > 0.0 and order.scalePriceIncrement:
+            and order.scalePriceIncrement != UNSET_DOUBLE \
+            and order.scalePriceIncrement > 0.0:
                 
             flds += [make_field_handle_empty( order.scalePriceAdjustValue),
                 make_field_handle_empty( order.scalePriceAdjustInterval),
@@ -1084,8 +1091,9 @@ class Client(object):
         # send miscOptions parameter
         if self.serverVersion >= MIN_SERVER_VER_LINKING:
             miscOptionsStr = ""
-            for tagValue in order.orderMiscOptions:
-                miscOptionsStr += str(tagValue)
+            if order.orderMiscOptions:
+                for tagValue in order.orderMiscOptions:
+                    miscOptionsStr += str(tagValue)
             flds.append(make_field( miscOptionsStr))
 
         if self.serverVersion >= MIN_SERVER_VER_ORDER_SOLICITED:
@@ -1125,8 +1133,8 @@ class Client(object):
             flds.append(make_field( order.extOperator))
 
         if self.serverVersion >= MIN_SERVER_VER_SOFT_DOLLAR_TIER:
-            flds += [make_field(order.softDollarTier.name()),
-                make_field(order.softDollarTier.val())]
+            flds += [make_field(order.softDollarTier.name),
+                make_field(order.softDollarTier.val)]
 
         msg = "".join(flds)
         self.send_msg(msg)
@@ -1267,7 +1275,8 @@ class Client(object):
 
     def reqAccountUpdates(self, subscribe: bool, acctCode: str):
         """Call this function to start getting account values, portfolio, 
-        and last update time information.
+        and last update time information via Wrapper.updateAccountValue(),
+        Wrapperi.updatePortfolio() and Wrapper.updateAccountTime().
 
         subscribe:bool - If set to TRUE, the client will start receiving account
             and Portfoliolio updates. If set to FALSE, the client will stop 
@@ -1294,7 +1303,8 @@ class Client(object):
 
     def reqAccountSummary(self, reqId: int, groupName: str, tags: str) -> bytes:
         """Call this method to request and keep up to date the data that appears
-        on the TWS Account Window Summary tab. The data is returned by accountSummary().
+        on the TWS Account Window Summary tab. The data is returned by 
+        accountSummary().
 
         Note:   This request is designed for an FA managed account but can be used for
         any multi-account structure.  
@@ -1425,6 +1435,10 @@ class Client(object):
  
 
     def reqPositionsMulti(self, reqId:int, account:str, modelCode:str):
+        """Requests positions for account and/or model.
+        Results are delivered via Wrapper.positionMulti() and 
+        Wrapper.positionMultiEnd() """
+
         # not connected?
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
@@ -1643,7 +1657,7 @@ class Client(object):
     #########################################################################
 
  
-    def reqMktDepth(self, tickerId: TickerId , contract: Contract,
+    def reqMktDepth(self, reqId: TickerId , contract: Contract,
                     numRows: int, mktDepthOptions: TagValueList):
         """Call this function to request market depth for a specific
         contract. The market depth will be returned by the updateMktDepth() and
@@ -1666,7 +1680,7 @@ class Client(object):
 
         if self.serverVersion < MIN_SERVER_VER_TRADING_CLASS:
             if contract.tradingClass or contract.conId > 0:
-                self.wrapper.error( tickerId, UPDATE_TWS.code(), UPDATE_TWS.msg() +
+                self.wrapper.error( reqId, UPDATE_TWS.code(), UPDATE_TWS.msg() +
                     "  It does not support conId and tradingClass parameters in reqMktDepth.")
                 return
 
@@ -1676,7 +1690,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.REQ_MKT_DEPTH),
             make_field(VERSION),
-            make_field(tickerId)]
+            make_field(reqId)]
 
         # send contract fields
         if self.serverVersion >= MIN_SERVER_VER_TRADING_CLASS:
@@ -1707,12 +1721,12 @@ class Client(object):
         self.send_msg(msg)
  
  
-    def cancelMktDepth(self, tickerId: TickerId):
+    def cancelMktDepth(self, reqId: TickerId):
         """After calling this function, market depth data for the specified id
         will stop flowing.
 
         id:TickerId - The ID that was specified in the call to 
-            reqMktDepthDataDepth()."""
+            reqMktDepth()."""
 
 	# not connected?
         if not self.isConnected():
@@ -1723,7 +1737,7 @@ class Client(object):
 
         msg = make_field(OUT.CANCEL_MKT_DEPTH) \
             + make_field(VERSION) \
-            + make_field(tickerId)
+            + make_field(reqId)
 
         self.send_msg(msg)
  
@@ -1734,11 +1748,11 @@ class Client(object):
 
     def reqNewsBulletins(self, allMsgs: bool):
         """Call this function to start receiving news bulletins. Each bulletin
-        will be returned by the updatedNewsBulletin() event. 
+        will be returned by the updateNewsBulletin() event. 
 
-        allMsgs:bool - If set to TRUE, returns all the existing bulletins for the
-        currencyent day and any new ones. If set to FALSE, will only return new
-        bulletins. """
+        allMsgs:bool - If set to TRUE, returns all the existing bulletins for 
+        the currencyent day and any new ones. If set to FALSE, will only 
+        return new bulletins. """
 
 	# not connected?
         if not self.isConnected():
@@ -1827,10 +1841,14 @@ class Client(object):
     ################## Historical Data
     #########################################################################
  
-    def reqHistoricalData(self, tickerId:TickerId , contract:Contract, endDateTime:str, 
+    def reqHistoricalData(self, reqId:TickerId , contract:Contract, endDateTime:str, 
                           durationStr:str, barSizeSetting:str, whatToShow:str, 
                           useRTH:int, formatDate:int, chartOptions:TagValueList):
-        """tickerId:TickerId - The id of the request. Must be a unique value. When the
+        """Requests contracts' historical data. When requesting historical data, a
+        finishing time and date is required along with a duration string. The
+        resulting bars will be returned in Wrapper.historicalData()
+
+        reqId:TickerId - The id of the request. Must be a unique value. When the
             market data returns, it whatToShowill be identified by this tag. This is also
             used when canceling the market data.
         contract:Contract - This object contains a description of the contract for which
@@ -1883,13 +1901,13 @@ class Client(object):
 
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), 
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), 
                                NOT_CONNECTED.msg())
             return
 
         if self.serverVersion < MIN_SERVER_VER_TRADING_CLASS:
             if contract.underComp:
-                self.wrapper.error(tickerId, UPDATE_TWS.code(), 
+                self.wrapper.error(reqId, UPDATE_TWS.code(), 
                     UPDATE_TWS.msg() + "  It does not support conId and tradingClass parameters in reqHistoricalData.")
                 return
 
@@ -1899,7 +1917,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.REQ_HISTORICAL_DATA),
             make_field(VERSION),
-            make_field(tickerId)]
+            make_field(reqId)]
 
         # send contract fields
         if self.serverVersion >= MIN_SERVER_VER_TRADING_CLASS:
@@ -1944,12 +1962,12 @@ class Client(object):
         self.send_msg(msg)
  
   
-    def cancelHistoricalData(self, tickerId:TickerId):
+    def cancelHistoricalData(self, reqId:TickerId):
         """Used if an internet disconnect has occurred or the results of a query
         are otherwise delayed and the application is no longer interested in receiving
         the data.
 
-        tickerId:TickerId - The ticker ID. Must be a unique value."""
+        reqId:TickerId - The ticker ID. Must be a unique value."""
 
 
         # not connected?
@@ -1961,7 +1979,7 @@ class Client(object):
 
         msg = make_field(OUT.CANCEL_HISTORICAL_DATA) \
            + make_field(VERSION)   \
-           + make_field(tickerId)
+           + make_field(reqId)
 
         self.send_msg(msg)
 
@@ -1988,10 +2006,10 @@ class Client(object):
  
 
 
-    def reqScannerSubscription(self, tickerId:int, 
+    def reqScannerSubscription(self, reqId:int, 
                                subscription:ScannerSubscription, 
                                scannerSubscriptionOptions:TagValueList):
-        """tickerId:int - The ticker ID. Must be a unique value.
+        """reqId:int - The ticker ID. Must be a unique value.
         scannerSubscription:ScannerSubscription - This structure contains
             possible parameters used to filter results.
         scannerSubscriptionOptions:TagValueList - For internal use only. 
@@ -2007,7 +2025,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.REQ_SCANNER_SUBSCRIPTION),
             make_field(VERSION),
-            make_field(tickerId),
+            make_field(reqId),
             make_field_handle_empty(subscription.numberOfRows),
             make_field(subscription.instrument),
             make_field(subscription.locationCode),
@@ -2042,8 +2060,8 @@ class Client(object):
 
 
 
-    def cancelScannerSubscription(self, tickerId:int):
-        """tickerId:int - The ticker ID. Must be a unique value."""
+    def cancelScannerSubscription(self, reqId:int):
+        """reqId:int - The ticker ID. Must be a unique value."""
         
         # not connected?
         if not self.isConnected():
@@ -2054,7 +2072,7 @@ class Client(object):
 
         msg = make_field(OUT.CANCEL_SCANNER_SUBSCRIPTION) \
            + make_field(VERSION)   \
-           + make_field(tickerId)
+           + make_field(reqId)
 
         self.send_msg(msg)
   
@@ -2064,7 +2082,7 @@ class Client(object):
     #########################################################################
 
  
-    def reqRealTimeBars(self,tickerId:TickerId, contract:Contract, barSize:int,
+    def reqRealTimeBars(self,reqId:TickerId, contract:Contract, barSize:int,
                         whatToShow:str, useRTH:bool, 
                         realTimeBarsOptions:TagValueList):
         """Call the reqRealTimeBars() function to start receiving real time bar
@@ -2099,7 +2117,7 @@ class Client(object):
 
         if self.serverVersion < MIN_SERVER_VER_TRADING_CLASS:
             if contract.tradingClass:
-                self.wrapper.error( tickerId, UPDATE_TWS.code(), 
+                self.wrapper.error( reqId, UPDATE_TWS.code(), 
                     UPDATE_TWS.msg() + "  It does not support conId and tradingClass parameter in reqRealTimeBars.")
                 return
   
@@ -2108,7 +2126,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.REQ_REAL_TIME_BARS),
             make_field(VERSION),
-            make_field(tickerId)]
+            make_field(reqId)]
  
         # send contract fields
         if self.serverVersion >= MIN_SERVER_VER_TRADING_CLASS:
@@ -2132,22 +2150,23 @@ class Client(object):
         # send realTimeBarsOptions parameter
         if self.serverVersion >= MIN_SERVER_VER_LINKING:
             realTimeBarsOptionsStr = ""
-            for tagValueOpt in realTimeBarsOptions:
-                realTimeBarsOptionsStr += str(tagValueOpt)
+            if realTimeBarsOptions:
+                for tagValueOpt in realTimeBarsOptions:
+                    realTimeBarsOptionsStr += str(tagValueOpt)
             flds += [make_field(realTimeBarsOptionsStr),]
 
         msg = "".join(flds)
         self.send_msg(msg)
  
 
-    def cancelRealTimeBars(self, tickerId:TickerId):
+    def cancelRealTimeBars(self, reqId:TickerId):
         """Call the cancelRealTimeBars() function to stop receiving real time bar results.
 
-        tickerId:TickerId - The Id that was specified in the call to reqRealTimeBars(). """
+        reqId:TickerId - The Id that was specified in the call to reqRealTimeBars(). """
         
         # not connected?
         if not self.isConnected():
-            self.wrapper.error(tickerId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            self.wrapper.error(reqId, NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
          
         VERSION = 1
@@ -2156,7 +2175,7 @@ class Client(object):
         flds = []
         flds += [make_field(OUT.CANCEL_REAL_TIME_BARS),
             make_field(VERSION),
-            make_field(tickerId)]
+            make_field(reqId)]
 
         msg = "".join(flds)
         self.send_msg(msg)
@@ -2170,8 +2189,9 @@ class Client(object):
     def reqFundamentalData(self, reqId:TickerId , contract:Contract, 
                            reportType:str):
         """Call this function to receive Reuters global fundamental data for
-        stocks. There must be a subscription to Reuters Fundamental set up in Account
-        Management before you can receive this data.
+        stocks. There must be a subscription to Reuters Fundamental set up in 
+        Account Management before you can receive this data.
+        Reuters funalmental data will be returned at Wrapper.fundamentalData().
 
         reqFundamentalData() can handle conid specified in the Contract object, 
         but not tradingClass or multiplier. This is because reqFundamentalData()
@@ -2472,11 +2492,12 @@ class Client(object):
                             futFopExchange:str, underlyingSecType:str, 
                             underlyingConId:int):
         """Requests security definition option parameters for viewing a
-        contract's option chain reqId the ID chosen for the request underlyingSymbol
-        futFopExchange The exchange on which the returned options are trading. Can be
-        set to the empty string "" for all exchanges. underlyingSecType The type of the
-        underlying security, i.e. STK underlyingConId the contract ID of the underlying
-        security."""
+        contract's option chain reqId the ID chosen for the request 
+        underlyingSymbol futFopExchange The exchange on which the returned 
+        options are trading. Can be set to the empty string "" for all 
+        exchanges. underlyingSecType The type of the underlying security, 
+        i.e. STK underlyingConId the contract ID of the underlying security.
+        Response comes via Wrapper.securityDefinitionOptionParameter()"""
 
         # not connected?
         if not self.isConnected():

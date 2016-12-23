@@ -31,9 +31,13 @@ from utils import *
 from execution import ExecutionFilter
 from scanner import ScannerSubscription
 from order_condition import *
+from contract import *
+from order import *
+from order_state import *
 
 #import pdb; pdb.set_trace()
 #import code; code.interact(local=locals())
+ #import code; code.interact(local=dict(globals(), **locals()))
 
 
 
@@ -41,51 +45,90 @@ class TestApp(Client, wrapper.Wrapper):
     def __init__(self):
         Client.__init__(self, self)
         self.nextValidOrderId = None
+        self.permId2ord = {}
 
-
+    @iswrapper
     def nextValidId(self, orderId:int):
+        super().nextValidId(orderId)
+
         LOGGER.debug("setting nextValidOrderId: %d", orderId)
         self.nextValidOrderId = orderId
 
 
+    def placeOneOrder(self):
+        con = Contract()
+        con.symbol = "AMD"
+        con.secType = "STK"
+        con.currency = "USD"
+        con.exchange = "SMART"
+        order = Order()
+        order.action = "BUY"
+        order.orderType = "LMT"
+        order.tif = "GTC"
+        order.totalQuantity = 3
+        order.lmtPrice = 1.23
+        self.placeOrder(self.nextOrderId(), con, order)
+
+    def cancelOneOrder(self):
+        pass
+ 
     def nextOrderId(self):
         id = self.nextValidOrderId
         self.nextValidOrderId += 1
         return id
 
 
+    @iswrapper
     def error(self, *args):
         super().error(*args)
         print(crt_fn_name(), vars())
 
 
+    @iswrapper
     def winError(self, *args):
         super().error(*args)
         print(crt_fn_name(), vars())
  
 
-    def openOrder(self, *args):
-        super().openOrder(*args)
+    @iswrapper
+    def openOrder(self, orderId:OrderId, contract:Contract, order:Order, 
+                  orderState:OrderState):
+        super().openOrder(orderId, contract, order, orderState)
         print(crt_fn_name(), vars())
 
+        order.contract = contract
+        self.permId2ord[order.permId] = order
 
+
+    @iswrapper
     def openOrderEnd(self, *args):
         super().openOrderEnd(*args)
-        print(crt_fn_name(), vars(), file=sys.stderr)
-        #LOGGER.debug("openOrderEnd - quitting")
-        #self.conn.disconnect()
+
+        LOGGER.debug("Received %d openOrders", len(self.permId2ord))
 
 
+    @iswrapper
+    def orderStatus(self, orderId:OrderId , status:str, filled:float,
+                    remaining:float, avgFillPrice:float, permId:int, 
+                    parentId:int, lastFillPrice:float, clientId:int, 
+                    whyHeld:str):
+        super().orderStatus(orderId, status, filled, remaining,
+            avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld)
+
+
+    @iswrapper
     def tickPrice(self, tickerId: TickerId , tickType: TickType, price: float, attrib):
         super().tickPrice(tickerId, tickType, price, attrib)
         print(crt_fn_name(), tickerId, TickTypeEnum.to_str(tickType), price, attrib, file=sys.stderr)
 
 
+    @iswrapper
     def tickSize(self, tickerId: TickerId, tickType: TickType, size: int):
         super().tickSize(tickerId, tickType, size)
         print(crt_fn_name(), tickerId, TickTypeEnum.to_str(tickType), size, file=sys.stderr)
 
 
+    @iswrapper
     def scannerParameters(self, xml:str):
         open('scanner.xml', 'w').write(xml)
 
@@ -127,66 +170,66 @@ def main():
     #import code; code.interact(local=dict(globals(), **locals()))
     #sys.exit(1)
 
-    the_client = TestApp()
-    the_client.connect("127.0.0.1", args.port, 0)
+    app = TestApp()
+    app.connect("127.0.0.1", args.port, 0)
 
-    the_client.reqCurrentTime()
-    the_client.reqManagedAccts()
-    the_client.reqAccountSummary(reqId = 2, groupName = "All", 
+    app.reqCurrentTime()
+    app.reqManagedAccts()
+    app.reqAccountSummary(reqId = 2, groupName = "All", 
                                  tags = "NetLiquidation")
 
-    the_client.reqAllOpenOrders()
+    app.reqAllOpenOrders()
 
     contract = Contract()
     contract.symbol = "AMD"
     contract.secType = "STK"   
     contract.currency = "USD"  
     contract.exchange = "SMART"
-    #the_client.reqMarketDataType(1)
-    #the_client.reqMktData(1001, contract, "", snapshot=True)
-    #the_client.cancelMktData(1001)
-    #the_client.reqExecutions(2001, ExecutionFilter())
-    #the_client.reqContractDetails(3001, contract)
-    #the_client.reqPositions()
-    #the_client.reqIds(2)
+    #app.reqMarketDataType(1)
+    #app.reqMktData(1001, contract, "", snapshot=True)
+    #app.cancelMktData(1001)
+    #app.reqExecutions(2001, ExecutionFilter())
+    #app.reqContractDetails(3001, contract)
+    #app.reqPositions()
+    #app.reqIds(2)
 
-    #the_client.reqMktDepth(4001, contract, 5, "")
-    #the_client.cancelMktDepth(4001)
+    #app.reqMktDepth(4001, contract, 5, "")
+    #app.cancelMktDepth(4001)
 
-    #the_client.reqNewsBulletins(allMsgs=True)
-    #the_client.cancelNewsBulletins()
+    #app.reqNewsBulletins(allMsgs=True)
+    #app.cancelNewsBulletins()
 
-    #the_client.requestFA(faDataTypeEnum.GROUPS)
+    #app.requestFA(faDataTypeEnum.GROUPS)
 
-    #the_client.reqHistoricalData(5001, contract, "20161215 16:00:00", "2 D",
+    #app.reqHistoricalData(5001, contract, "20161215 16:00:00", "2 D",
     #                             "1 hour", "TRADES", 0, 1, []) 
-    #the_client.cancelHistoricalData(5001)
+    #app.cancelHistoricalData(5001)
                                  
-    #the_client.reqFundamentalData(6001, contract, "ReportSnapshot")
-    #the_client.cancelFundamentalData(6001)
+    #app.reqFundamentalData(6001, contract, "ReportSnapshot")
+    #app.cancelFundamentalData(6001)
 
-    #the_client.queryDisplayGroups(7001)
-    #the_client.subscribeToGroupEvents(7002, 1)
-    #the_client.unsubscribeFromGroupEvents(7002)
+    #app.queryDisplayGroups(7001)
+    #app.subscribeToGroupEvents(7002, 1)
+    #app.unsubscribeFromGroupEvents(7002)
 
-    #the_client.reqScannerParameters()
+    #app.reqScannerParameters()
     ss = ScannerSubscription()
     ss.instrument = "STK"
     ss.locationCode = "STK.US"
     ss.scanCode = "TOP_PERC_LOSE"
-    #the_client.reqScannerSubscription(8001, ss, [])
-    #the_client.cancelScannerSubscription(8001)
+    #app.reqScannerSubscription(8001, ss, [])
+    #app.cancelScannerSubscription(8001)
 
-    #the_client.reqRealTimeBars(9001, contract, 5, "TRADES", 0, [])
-    #the_client.cancelRealTimeBars(9001) 
+    #app.reqRealTimeBars(9001, contract, 5, "TRADES", 0, [])
+    #app.cancelRealTimeBars(9001) 
 
-    #the_client.reqSecDefOptParams(10001, "AMD", "", "STK", 4391)
+    #app.reqSecDefOptParams(10001, "AMD", "", "STK", 4391)
 
-    #the_client.reqSoftDollarTiers(11001)
+    #app.reqSoftDollarTiers(11001)
 
-    #the_client.reqFamilyCodes()
+    #app.reqFamilyCodes()
 
-    #the_client.reqMatchingSymbols(12001, "AMD")
+    #app.reqMatchingSymbols(12001, "AMD")
 
     contract = Contract()
     contract.symbol = "AMD"
@@ -199,10 +242,10 @@ def main():
     contract.multiplier = "100"
     #Often, contracts will also require a trading class to rule out ambiguities
     contract.tradingClass = "AMD"
-    #the_client.calculateImpliedVolatility(13001, contract, 1.3, 10.85)
-    #the_client.calculateOptionPrice(13002, contract, 0.65, 10.85)
+    #app.calculateImpliedVolatility(13001, contract, 1.3, 10.85)
+    #app.calculateOptionPrice(13002, contract, 0.65, 10.85)
 
-    the_client.run()
+    app.run()
 
 
 if __name__ == "__main__":

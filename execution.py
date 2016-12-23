@@ -11,7 +11,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 #TODO: not really sure what this class is conceptually. Figure out !
 """
 
-from utils import Object
+from object_implem import Object
 
 
 class Execution(Object):

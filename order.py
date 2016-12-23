@@ -7,7 +7,8 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 """
 
 
-from utils import Object
+from common import UNSET_INTEGER, UNSET_DOUBLE
+from object_implem import Object
 from softdollartier import SoftDollarTier
  
 # enum Origin
@@ -20,7 +21,7 @@ from softdollartier import SoftDollarTier
 
 class OrderComboLeg(Object):
     def __init__(self):
-        self.price = None  # type: float
+        self.price = UNSET_DOUBLE  # type: float
 
     def __str__(self):
         return "%f" % self.price
@@ -38,8 +39,8 @@ class Order(Object):
         self.action = ""
         self.totalQuantity = 0
         self.orderType = ""
-        self.lmtPrice      = None
-        self.auxPrice      = None
+        self.lmtPrice      = UNSET_DOUBLE
+        self.auxPrice      = UNSET_DOUBLE
 
         # extended order fields
         self.tif = ""                # "Time in Force" - DAY, GTC, etc. 
@@ -60,11 +61,11 @@ class Order(Object):
         self.goodTillDate        = ""   # Format: 20060505 08:00:00 {time zone}
         self.rule80A             = ""   # Individual = 'I', Agency = 'A', AgentOtherMember = 'W', IndividualPTIA = 'J', AgencyPTIA = 'U', AgentOtherMemberPTIA = 'M', IndividualPT = 'K', AgencyPT = 'Y', AgentOtherMemberPT = 'N'
         self.allOrNone      = False
-        self.minQty         = None  #type: int
-        self.percentOffset  = None  # type: float; REL orders only
+        self.minQty         = UNSET_INTEGER  #type: int
+        self.percentOffset  = UNSET_DOUBLE  # type: float; REL orders only
         self.overridePercentageConstraints = False
-        self.trailStopPrice = None  # type: float
-        self.trailingPercent = None # type: float; TRAILLIMIT orders only 
+        self.trailStopPrice = UNSET_DOUBLE  # type: float
+        self.trailingPercent = UNSET_DOUBLE # type: float; TRAILLIMIT orders only 
 
         # financial advisors only
         self.faGroup              = ""
@@ -73,6 +74,7 @@ class Order(Object):
         self.faPercentage         = "" 
     
         # institutional (ie non-cleared) only
+        self.designatedLocation = "" #used only when shortSaleSlot=2
         self.openClose     = "O"    # O=Open, C=Close 
         self.origin        = CUSTOMER  # 0=Customer, 1=Firm 
         self.shortSaleSlot = 0    # type: int; 1 if you hold the shares, 2 if they will be delivered from elsewhere.  Only for Action=SSHORT 
@@ -82,27 +84,27 @@ class Order(Object):
         self.discretionaryAmt = 0
         self.eTradeOnly       = True
         self.firmQuoteOnly    = True
-        self.nbboPriceCap     = None  # type: float
+        self.nbboPriceCap     = UNSET_DOUBLE  # type: float
         self.optOutSmartRouting = False
 
         # BOX exchange orders only
         self.auctionStrategy = AUCTION_UNSET # type: int; AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT 
-        self.startingPrice   = None   # type: float
-        self.stockRefPrice   = None   # type: float
-        self.delta           = None   # type: float
+        self.startingPrice   = UNSET_DOUBLE   # type: float
+        self.stockRefPrice   = UNSET_DOUBLE   # type: float
+        self.delta           = UNSET_DOUBLE   # type: float
 
         # pegged to stock and VOL orders only
-        self.stockRangeLower = None   # type: float 
-        self.stockRangeUpper = None   # type: float 
+        self.stockRangeLower = UNSET_DOUBLE   # type: float 
+        self.stockRangeUpper = UNSET_DOUBLE   # type: float 
 
         self.randomizePrice = False
         self.randomizeSize = False
 
         # VOLATILITY ORDERS ONLY
-        self.volatility            = None  # type: float
-        self.volatilityType        = None  # type: int   # 1=daily, 2=annual
+        self.volatility            = UNSET_DOUBLE  # type: float
+        self.volatilityType        = UNSET_INTEGER  # type: int   # 1=daily, 2=annual
         self.deltaNeutralOrderType = ""
-        self.deltaNeutralAuxPrice  = None  # type: float
+        self.deltaNeutralAuxPrice  = UNSET_DOUBLE  # type: float
         self.deltaNeutralConId     = 0
         self.deltaNeutralSettlingFirm = ""
         self.deltaNeutralClearingAccount = ""
@@ -112,22 +114,22 @@ class Order(Object):
         self.deltaNeutralShortSaleSlot = 0
         self.deltaNeutralDesignatedLocation = ""
         self.continuousUpdate      = False
-        self.referencePriceType    = None  # type: int; 1=Average, 2 = BidOrAsk
+        self.referencePriceType    = UNSET_INTEGER  # type: int; 1=Average, 2 = BidOrAsk
 
         # COMBO ORDERS ONLY
-        self.basisPoints     = None  # type: float; EFP orders only
-        self.basisPointsType = None  # type: int;  EFP orders only
+        self.basisPoints     = UNSET_DOUBLE  # type: float; EFP orders only
+        self.basisPointsType = UNSET_INTEGER  # type: int;  EFP orders only
 
         # SCALE ORDERS ONLY
-        self.scaleInitLevelSize  = None  # type: int
-        self.scaleSubsLevelSize  = None  # type: int
-        self.scalePriceIncrement = None  # type: float
-        self.scalePriceAdjustValue = None  # type: float 
-        self.scalePriceAdjustInterval = None  # type: int
-        self.scaleProfitOffset = None  # type: float
+        self.scaleInitLevelSize  = UNSET_INTEGER  # type: int
+        self.scaleSubsLevelSize  = UNSET_INTEGER  # type: int
+        self.scalePriceIncrement = UNSET_DOUBLE  # type: float
+        self.scalePriceAdjustValue = UNSET_DOUBLE  # type: float 
+        self.scalePriceAdjustInterval = UNSET_INTEGER  # type: int
+        self.scaleProfitOffset = UNSET_DOUBLE  # type: float
         self.scaleAutoReset = False
-        self.scaleInitPosition = None   # type: int
-        self.scaleInitFillQty = None    # type: int
+        self.scaleInitPosition = UNSET_INTEGER   # type: int
+        self.scaleInitFillQty = UNSET_INTEGER    # type: int
         self.scaleRandomPercent = False
         self.scaleTable = ""
 
@@ -173,14 +175,14 @@ class Order(Object):
         self.referenceExchangeId = ""
         self.adjustedOrderType = ""
 
-        self.triggerPrice = None
-        self.adjustedStopPrice = None
-        self.adjustedStopLimitPrice = None
-        self.adjustedTrailingAmount = None
+        self.triggerPrice = UNSET_DOUBLE
+        self.adjustedStopPrice = UNSET_DOUBLE
+        self.adjustedStopLimitPrice = UNSET_DOUBLE
+        self.adjustedTrailingAmount = UNSET_DOUBLE
         self.adjustableTrailingUnit = 0
-        self.lmtPriceOffset = None
+        self.lmtPriceOffset = UNSET_DOUBLE
 
-        self.conditions = None  # std::vector<ibapi::shared_ptr<OrderCondition>> 
+        self.conditions = []  # std::vector<ibapi::shared_ptr<OrderCondition>> 
         self.conditionsCancelOrder = False
         self.conditionsIgnoreRth = False
  
