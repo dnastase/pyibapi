@@ -37,6 +37,7 @@ from ticktype import *
 from commission_report import CommissionReport
 
 
+#TODO: finish adding docstrings
 
 
 class Wrapper:
@@ -50,12 +51,12 @@ class Wrapper:
         LOGGER.debug("ANSWER %s %s", fnName, prms)
 
 
-    def error(self, id, errorCode:int, errorString:str):
+    def error(self, reqId:TickerId, errorCode:int, errorString:str):
         """This event is called when there is an error with the
         communication or when TWS wants to send a message to the client."""
 
-        #self.logAnswer(crt_fn_name(), vars()) 
-        LOGGER.error("ERROR %s %s %s", id, errorCode, errorString)
+        self.logAnswer(crt_fn_name(), vars()) 
+        LOGGER.error("ERROR %s %s %s", reqId, errorCode, errorString)
 
  
     def winError(self, text:str, lastError:int):
@@ -86,7 +87,7 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def marketDataType(self, reqId:TickerId , marketDataType:int):
+    def marketDataType(self, reqId:TickerId, marketDataType:int):
         """TWS sends a marketDataType(type) callback to the API, where
         type is set to Frozen or RealTime, to announce that market data has been
         switched between frozen and real-time. This notification occurs only
@@ -120,7 +121,8 @@ class Wrapper:
         """This event is called whenever the status of an order changes. It is
         also fired after reconnecting to TWS if the client has any open orders.
 
-        id: OrderId - The order ID that was specified previously in the call to placeOrder()
+        orderId: OrderId - The order ID that was specified previously in the 
+            call to placeOrder()
         status:str - The order status. Possible values include:
             PendingSubmit - indicates that you have transmitted the order, but have not  yet received confirmation that it has been accepted by the order destination. NOTE: This order status is not sent by TWS and should be explicitly set by the API developer when an order is submitted.
             PendingCancel - indicates that you have sent a request to cancel the order but have not yet received cancel confirmation from the order destination. At this point, your order is not confirmed canceled. You may still receive an execution while your cancellation request is pending. NOTE: This order status is not sent by TWS and should be explicitly set by the API developer when an order is canceled.
@@ -203,6 +205,8 @@ class Wrapper:
 
 
     def nextValidId(self, orderId:int):
+        """ Receives next valid order id."""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
@@ -215,8 +219,8 @@ class Wrapper:
 
 
     def bondContractDetails(self, reqId:int, contractDetails:ContractDetails):
-        """This function is called only when reqContractDetails function
-            on the EClientSocket object has been called for bonds."""
+        """This function is called when reqContractDetails function
+        has been called for bonds."""
 
         self.logAnswer(crt_fn_name(), vars()) 
 
@@ -244,12 +248,12 @@ class Wrapper:
 
 
 
-    def updateMktDepth(self, id:TickerId , position:int, operation:int,
+    def updateMktDepth(self, reqId:TickerId , position:int, operation:int,
                         side:int, price:float, size:int):
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def updateMktDepthL2(self, id:TickerId , position:int, marketMaker:str,
+    def updateMktDepthL2(self, reqId:TickerId , position:int, marketMaker:str,
                           operation:int, side:int, price:float, size:int):
         self.logAnswer(crt_fn_name(), vars()) 
 
@@ -260,10 +264,11 @@ class Wrapper:
 
 
     def managedAccounts(self, accountsList:str):
+        """Receives a comma-separated string with the managed account ids."""
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def receiveFA(self, pFaDataType:faDataType , cxml:str):
+    def receiveFA(self, faData:FaDataType , cxml:str):
         self.logAnswer(crt_fn_name(), vars()) 
 
 
@@ -369,7 +374,7 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def verifyAndAuthCompleted(isSuccessful:bool, errorText:str):
+    def verifyAndAuthCompleted(self, isSuccessful:bool, errorText:str):
 
         self.logAnswer(crt_fn_name(), vars()) 
 
@@ -443,6 +448,7 @@ class Wrapper:
 
         self.logAnswer(crt_fn_name(), vars()) 
  
+
     def securityDefinitionOptionParameter(self, reqId:int, exchange:str,
         underlyingConId:int, tradingClass:str, multiplier:str, 
         expirations:SetOfString, strikes:SetOfFloat):
@@ -459,12 +465,10 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    ListOfFamilyCode = list
     def familyCodes(self, familyCodes:ListOfFamilyCode):
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    ListOfContractDescription = list
     def symbolSamples(self, reqId:int, contractDescriptions:ListOfContractDescription):
         self.logAnswer(crt_fn_name(), vars()) 
 

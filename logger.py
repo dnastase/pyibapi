@@ -19,7 +19,7 @@ if not os.path.exists("log"):
 
 time.strftime("pyibapi.%Y%m%d_%H%M%S.log")
 
-recfmt = '\n(%(threadName)s) %(asctime)s.%(msecs)03d %(levelname)s %(filename)s:%(lineno)d %(message)s'
+recfmt = '(%(threadName)s) %(asctime)s.%(msecs)03d %(levelname)s %(filename)s:%(lineno)d %(message)s'
 
 timefmt = '%y%m%d_%H:%M:%S'
 

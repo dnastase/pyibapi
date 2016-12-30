@@ -31,6 +31,7 @@ class ContractSamples:
         #! [cashcontract]
         return contract
 
+
     @staticmethod
     def Index():
         #! [indcontract]
@@ -41,6 +42,7 @@ class ContractSamples:
         contract.exchange = "DTB"
         #! [indcontract]
         return contract
+
 
     @staticmethod
     def CFD():
@@ -53,6 +55,7 @@ class ContractSamples:
         #! [cfdcontract]
         return contract
 
+
     @staticmethod
     def EuropeanStock():
         contract = Contract()
@@ -61,6 +64,7 @@ class ContractSamples:
         contract.currency = "EUR"
         contract.exchange = "SMART"
         return contract
+
 
     @staticmethod
     def OptionAtIse():
@@ -75,6 +79,7 @@ class ContractSamples:
         contract.multiplier = "100"
         return contract
 
+
     @staticmethod
     def BondWithCusip():
             #! [bondwithcusip]
@@ -87,6 +92,7 @@ class ContractSamples:
             #! [bondwithcusip]
             return contract
 
+
     @staticmethod
     def Bond():
             #! [bond]
@@ -95,6 +101,7 @@ class ContractSamples:
             contract.exchange = "SMART"
             #! [bond]
             return contract
+
 
     @staticmethod
     def MutualFund():
@@ -107,6 +114,7 @@ class ContractSamples:
             #! [fundcontract]
             return contract
 
+
     @staticmethod
     def Commodity():
             #! [commoditycontract]
@@ -118,6 +126,7 @@ class ContractSamples:
             #! [commoditycontract]
             return contract
     
+
     @staticmethod
     def USStock():
         #! [stkcontract]
@@ -129,6 +138,7 @@ class ContractSamples:
         contract.exchange = "ISLAND"
         #! [stkcontract]
         return contract
+
 
     @staticmethod
     def USStockWithPrimaryExch():
@@ -153,6 +163,7 @@ class ContractSamples:
         contract.exchange = "SMART"
         return contract
 
+
     @staticmethod
     def USOptionContract():
         #! [optcontract_us]
@@ -168,6 +179,7 @@ class ContractSamples:
         #! [optcontract_us]
         return contract
 
+
     @staticmethod
     def OptionAtBOX():
         #! [optcontract]
@@ -182,6 +194,7 @@ class ContractSamples:
         contract.multiplier = "100"
         #! [optcontract]
         return contract
+
 
     """ Option contracts require far more information since there are many 
     contracts having the exact same attributes such as symbol, currency, 
@@ -204,6 +217,7 @@ class ContractSamples:
         #! [optcontract_tradingclass]
         return contract
 
+
     """ Using the contract's own symbol (localSymbol) can greatly simplify a
     contract description """
 
@@ -218,6 +232,7 @@ class ContractSamples:
         contract.currency = "EUR"
         #! [optcontract_localsymbol]
         return contract
+
 
     """ Future contracts also require an expiration date but are less
     complicated than options."""
@@ -234,6 +249,7 @@ class ContractSamples:
         #! [futcontract]
         return contract
 
+
     """Rather than giving expiration dates we can also provide the local symbol
     attributes such as symbol, currency, strike, etc. """
 
@@ -248,6 +264,7 @@ class ContractSamples:
         #! [futcontract_local_symbol]
         return contract
 
+
     @staticmethod
     def FutureWithMultiplier():
         #! [futcontract_multiplier]
@@ -260,6 +277,7 @@ class ContractSamples:
         contract.multiplier = "5"
         #! [futcontract_multiplier]
         return contract
+
 
     """ Note the space in the symbol! """
 
@@ -288,6 +306,7 @@ class ContractSamples:
         #! [fopcontract]
         return contract
 
+
     """ It is also possible to define contracts based on their ISIN (IBKR STK
     sample). """
 
@@ -300,6 +319,7 @@ class ContractSamples:
         contract.currency = "USD"
         contract.secType = "STK"
         return contract
+
 
     """ Or their conId (EUR.uSD sample).
     Note: passing a contract containing the conId can cause problems if one of 
@@ -317,6 +337,7 @@ class ContractSamples:
         contract.exchange = "IDEALPRO"
         return contract
 
+
     """ Ambiguous contracts are great to use with reqContractDetails. This way
     you can query the whole option chain for an underlying. Bear in mind that
     there are pacing mechanisms in place which will delay any further responses
@@ -332,6 +353,7 @@ class ContractSamples:
         contract.currency = "USD"
         #! [optionforquery]
         return contract
+
 
     @staticmethod
     def OptionComboContract():
@@ -359,6 +381,7 @@ class ContractSamples:
         contract.comboLegs.append(leg2)
         #! [bagoptcontract]
         return contract
+
 
     """ STK Combo contract
     Leg 1: 43645865 - IBKR's STK
@@ -391,9 +414,8 @@ class ContractSamples:
         #! [bagstkcontract]
         return contract
 
-    """ CBOE Volatility Index Future combo contract
-    Leg 1: 195538625 - FUT expiring 2016/02/17
-    Leg 2: 197436571 - FUT expiring 2016/03/16 """
+
+    """ CBOE Volatility Index Future combo contract """
 
     @staticmethod
     def FutureComboContract():
@@ -405,13 +427,13 @@ class ContractSamples:
         contract.exchange = "CFE"
 
         leg1 = ComboLeg()
-        leg1.conId = 195538625#VIX FUT 20160217
+        leg1.conId = 256038899 # VIX FUT 201708
         leg1.ratio = 1
         leg1.action = "BUY"
         leg1.exchange = "CFE"
 
         leg2 = ComboLeg()
-        leg2.conId = 197436571#VIX FUT 20160316
+        leg2.conId = 260564703 # VIX FUT 201709
         leg2.ratio = 1
         leg2.action = "SELL"
         leg2.exchange = "CFE"
@@ -421,6 +443,7 @@ class ContractSamples:
         contract.comboLegs.append(leg2)
         #! [bagfutcontract]
         return contract
+
 
     @staticmethod
     def InterCmdtyFuturesContract():
@@ -449,6 +472,7 @@ class ContractSamples:
         #! [intcmdfutcontract]
         return contract
 
+
     @staticmethod
     def NewsFeedForQuery():
         #! [newsfeedforquery]
@@ -457,6 +481,7 @@ class ContractSamples:
         contract.exchange = "BT" #Briefing Trader
         #! [newsfeedforquery]
         return contract
+
 
     @staticmethod
     def BTbroadtapeNewsFeed():
@@ -468,6 +493,7 @@ class ContractSamples:
         #! [newscontractbt]
         return contract
 
+
     @staticmethod
     def BZbroadtapeNewsFeed():
         #! [newscontractbz]
@@ -478,6 +504,7 @@ class ContractSamples:
         #! [newscontractbz]
         return contract
 
+
     @staticmethod
     def FLYbroadtapeNewsFeed():
         #! [newscontractfly]
@@ -487,6 +514,7 @@ class ContractSamples:
         contract.exchange = "FLY" #Fly on the Wall
        #! [newscontractfly]
         return contract
+
 
     @staticmethod
     def MTbroadtapeNewsFeed():

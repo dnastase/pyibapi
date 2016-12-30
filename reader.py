@@ -31,7 +31,7 @@ class Reader(Thread):
         while self.conn.is_connected():
         
             buf = self.conn.recv_msg()
-            LOGGER.debug("main loop, recvd buf %s", buf)
+            LOGGER.debug("reader loop, recvd size: %d buf %s", len(buf), buf)
            
             while len(buf) > 0:
                 (size, msg, buf) = comm.read_msg(buf)

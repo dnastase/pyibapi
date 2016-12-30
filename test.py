@@ -199,7 +199,7 @@ def main():
     #app.reqNewsBulletins(allMsgs=True)
     #app.cancelNewsBulletins()
 
-    #app.requestFA(faDataTypeEnum.GROUPS)
+    #app.requestFA(FaDataTypeEnum.GROUPS)
 
     #app.reqHistoricalData(5001, contract, "20161215 16:00:00", "2 D",
     #                             "1 hour", "TRADES", 0, 1, []) 

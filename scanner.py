@@ -8,6 +8,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 """
 
 from object_implem import Object
+from common import UNSET_INTEGER, UNSET_DOUBLE
 
 
 class ScanData(Object):
@@ -32,21 +33,27 @@ class ScannerSubscription(Object):
         self.instrument = ""
         self.locationCode = ""
         self.scanCode =  ""
-        self.abovePrice = None
-        self.belowPrice = None
-        self.aboveVolume = None
-        self.marketCapAbove = None
-        self.marketCapBelow = None
+        self.abovePrice = UNSET_DOUBLE
+        self.belowPrice = UNSET_DOUBLE
+        self.aboveVolume = UNSET_INTEGER
+        self.marketCapAbove = UNSET_DOUBLE
+        self.marketCapBelow = UNSET_DOUBLE
         self.moodyRatingAbove =  ""
         self.moodyRatingBelow =  ""
         self.spRatingAbove =  ""
         self.spRatingBelow =  ""
         self.maturityDateAbove =  ""
         self.maturityDateBelow =  ""
-        self.couponRateAbove = None
-        self.couponRateBelow = None 
+        self.couponRateAbove = UNSET_DOUBLE
+        self.couponRateBelow = UNSET_DOUBLE 
         self.excludeConvertible = 0
-        self.averageOptionVolumeAbove = 0
+        self.averageOptionVolumeAbove = UNSET_INTEGER
         self.scannerSettingPairs =  ""
         self.stockTypeFilter =  ""
-     
+
+
+    def __str__(self):
+        s = "%s,%s,%s" % (self.instrument, self.locationCode, self.scanCode)
+
+        return s
+

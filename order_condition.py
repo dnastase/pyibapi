@@ -30,6 +30,9 @@ class OrderCondition(Object):
         self.condType = condType
         self.isConjunctionConnection = True
 
+    def type(self):
+        return self.condType
+
     def And(self):
         self.isConjunctionConnection = True
         return self
@@ -73,7 +76,8 @@ class ExecutionCondition(OrderCondition):
         return flds
  
     def __str__(self):
-        return "trade occurs for " + self.symbol + " symbol on " + self.exchange + " exchange for " + self.secType + " security type"
+        return "trade occurs for " + self.symbol + " symbol on " + \
+            self.exchange + " exchange for " + self.secType + " security type"
         
 
 class OperatorCondition(OrderCondition):
@@ -183,8 +187,10 @@ class PriceCondition(ContractCondition):
           "LastBidAsk", #= 7,
           "MidPoint") #= 8
      
-    def __init__(self, triggerMethod=None, conId=None, exch=None, isMore=None, price=None):
-        ContractCondition.__init__(self, OrderCondition.Price, conId, exch, isMore)
+    def __init__(self, triggerMethod=None, conId=None, exch=None, isMore=None, 
+                 price=None):
+        ContractCondition.__init__(self, OrderCondition.Price, conId, exch, 
+                                   isMore)
         self.price = price
         self.triggerMethod = triggerMethod
 
@@ -212,7 +218,8 @@ class PriceCondition(ContractCondition):
 class PercentChangeCondition(ContractCondition):
     def __init__(self, conId=None, exch=None, isMore=None,
                  changePercent=UNSET_DOUBLE):
-        ContractCondition.__init__(self, OrderCondition.PercentChange, conId, exch, isMore)
+        ContractCondition.__init__(self, OrderCondition.PercentChange, conId,
+                                   exch, isMore)
         self.changePercent = changePercent
 
     def decode(self, fields):
@@ -235,7 +242,8 @@ class PercentChangeCondition(ContractCondition):
 
 class VolumeCondition(ContractCondition):
     def __init__(self, conId=None, exch=None, isMore=None, volume=None):
-        ContractCondition.__init__(self, OrderCondition.Volume, conId, exch, isMore)
+        ContractCondition.__init__(self, OrderCondition.Volume, conId, exch, 
+                                   isMore)
         self.volume = volume
 
     def decode(self, fields):

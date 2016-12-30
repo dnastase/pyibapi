@@ -80,6 +80,7 @@ def decode(the_type, fields, show_unset = False):
     return n
 
 
+
 def ExerciseStaticMethods(klass):
     
     import types, inspect

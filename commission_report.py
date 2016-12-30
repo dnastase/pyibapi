@@ -19,4 +19,10 @@ class CommissionReport(Object):
         self.realizedPNL =  0.
         self.yield_ = 0.
         self.yieldRedemptionDate = 0  # YYYYMMDD format
+
+    def __str__(self):
+        s = "%s: %f %s %f %f %d" % (self.execId, self.commission, 
+            self.currency, self.realizedPNL, self.yield_, 
+            self.yieldRedemptionDate)
+        return s
  

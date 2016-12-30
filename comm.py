@@ -54,6 +54,7 @@ def make_field_handle_empty(val) -> bytes:
 def read_msg(buf: bytes) -> tuple:
     """ first the size prefix and then the corresponding msg payload """
     size = struct.unpack("!I", buf[0:4])[0]
+    LOGGER.debug("read_msg: size: %d", size)
     text = struct.unpack("!%ds" % size, buf[4:4+size])[0]
 
     return (size, text, buf[4+size:])

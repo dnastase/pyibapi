@@ -12,6 +12,10 @@ sys.path.append("../../../source/pythonclient")
 
 from order import *
 from common import *
+from tag_value import TagValue
+import order_condition
+from order_condition import *
+
 
 class OrderSamples:
 
@@ -204,7 +208,8 @@ class OrderSamples:
     #/ Products: CFD, STK, OPT, FUT
     </summary>"""
     @staticmethod
-    def RelativePeggedToPrimary(action:str, quantity:float, priceCap:float, offsetAmount:float):
+    def RelativePeggedToPrimary(action:str, quantity:float, priceCap:float, 
+                                offsetAmount:float):
     
         #! [relative_pegged_primary]
         order = Order()
@@ -233,7 +238,7 @@ class OrderSamples:
         order.orderType = "LMT"
         order.totalQuantity = quantity
         order.lmtPrice = price
-        order.sweepToFill = true
+        order.sweepToFill = True
         #! [sweep_to_fill]
         return order
     
@@ -250,7 +255,8 @@ class OrderSamples:
     #/ Supported Exchanges: BOX
     </summary>"""
     @staticmethod
-    def AuctionLimit(action:str, quantity:float, price:float, auctionStrategy:int):
+    def AuctionLimit(action:str, quantity:float, price:float, 
+                     auctionStrategy:int):
     
         #! [auction_limit]
         order = Order()
@@ -278,7 +284,8 @@ class OrderSamples:
     #/ Supported Exchanges: BOX
     </summary>"""
     @staticmethod
-    def AuctionPeggedToStock(action:str, quantity:float, startingPrice:float, delta:float):
+    def AuctionPeggedToStock(action:str, quantity:float, startingPrice:float, 
+                             delta:float):
     
         #! [auction_pegged_stock]
         order = Order()
@@ -332,7 +339,7 @@ class OrderSamples:
         order.orderType = "LMT"
         order.totalQuantity = quantity#Large volumes!
         order.lmtPrice = price
-        order.blockOrder = true
+        order.blockOrder = True
         # ! [block]
         return order
     
@@ -380,7 +387,8 @@ class OrderSamples:
     #/ Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
     </summary>"""
     @staticmethod
-    def LimitIfTouched(action:str, quantity:float, limitPrice:float, triggerPrice:float):
+    def LimitIfTouched(action:str, quantity:float, limitPrice:float, 
+                        triggerPrice:float):
     
         # ! [limitiftouched]
         order = Order()
@@ -483,8 +491,9 @@ class OrderSamples:
     </summary>"""
     #! [bracket]
     @staticmethod
-    def BracketOrder(parentOrderId:int, action:str, quantity:float, limitPrice:float, 
-        takeProfitLimitPrice:float, stopLossPrice:float):
+    def BracketOrder(parentOrderId:int, action:str, quantity:float, 
+                     limitPrice:float, takeProfitLimitPrice:float, 
+                     stopLossPrice:float):
     
         #This will be our main or "parent" order
         parent = Order()
@@ -493,9 +502,9 @@ class OrderSamples:
         parent.orderType = "LMT"
         parent.totalQuantity = quantity
         parent.lmtPrice = limitPrice
-        #The parent and children orders will need this attribute set to false to prevent accidental executions.
-        #The LAST CHILD will have it set to true, 
-        parent.transmit = false
+        #The parent and children orders will need this attribute set to False to prevent accidental executions.
+        #The LAST CHILD will have it set to True, 
+        parent.transmit = False
 
         takeProfit = Order()
         takeProfit.orderId = parent.orderId + 1
@@ -504,7 +513,7 @@ class OrderSamples:
         takeProfit.totalQuantity = quantity
         takeProfit.lmtPrice = takeProfitLimitPrice
         takeProfit.parentId = parentOrderId
-        takeProfit.transmit = false
+        takeProfit.transmit = False
 
         stopLoss = Order()
         stopLoss.orderId = parent.orderId + 2
@@ -514,9 +523,9 @@ class OrderSamples:
         stopLoss.auxPrice = stopLossPrice
         stopLoss.totalQuantity = quantity
         stopLoss.parentId = parentOrderId
-        #In this case, the low side order will be the last child being sent. Therefore, it needs to set this attribute to true 
+        #In this case, the low side order will be the last child being sent. Therefore, it needs to set this attribute to True 
         #to activate all its predecessors
-        stopLoss.transmit = true
+        stopLoss.transmit = True
 
         bracketOrder = []
         bracketOrder.append(parent)
@@ -633,7 +642,8 @@ class OrderSamples:
     #/ Products: CFD, CASH, FOP, FUT, OPT, STK, WAR
     </summary>"""
     @staticmethod
-    def TrailingStop(action:str, quantity:float, trailingPercent:float, trailStopPrice:float):
+    def TrailingStop(action:str, quantity:float, trailingPercent:float,
+                     trailStopPrice:float):
     
         # ! [trailingstop]
         order = Order()
@@ -657,7 +667,8 @@ class OrderSamples:
     #/ Products: BOND, CFD, CASH, FUT, FOP, OPT, STK, WAR
     </summary>"""
     @staticmethod
-    def TrailingStopLimit(action:str, quantity:float, limitPrice:float, trailingAmount:float, trailStopPrice:float):
+    def TrailingStopLimit(action:str, quantity:float, limitPrice:float, 
+                          trailingAmount:float, trailStopPrice:float):
     
         # ! [trailingstoplimit]
         order = Order()
@@ -679,7 +690,8 @@ class OrderSamples:
     #/ Products: OPT, STK, FUT
     </summary>"""
     @staticmethod
-    def ComboLimitOrder(action:str, quantity:float, limitPrice:float, nonGuaranteed:bool):
+    def ComboLimitOrder(action:str, quantity:float, limitPrice:float, 
+                        nonGuaranteed:bool):
     
         # ! [combolimit]
         order = Order()
@@ -728,7 +740,8 @@ class OrderSamples:
     #/ Products: OPT, STK, FUT
     </summary>"""
     @staticmethod
-    def LimitOrderForComboWithLegPrices(action:str, quantity:float, legPrices:list, nonGuaranteed:bool):
+    def LimitOrderForComboWithLegPrices(action:str, quantity:float,
+                                        legPrices:list, nonGuaranteed:bool):
     
         # ! [limitordercombolegprices]
         order = Order()
@@ -739,7 +752,7 @@ class OrderSamples:
         for price in legPrices:
         
             comboLeg = OrderComboLeg()
-            comboLeg.price = 5.0
+            comboLeg.price = price
             order.orderComboLegs.append(comboLeg)
                    
         if nonGuaranteed:
@@ -758,7 +771,8 @@ class OrderSamples:
     #/ Products: OPT, STK, FUT
     </summary>"""
     @staticmethod
-    def RelativeLimitCombo(action:str, quantity:float, limitPrice:float, nonGuaranteed:bool):
+    def RelativeLimitCombo(action:str, quantity:float, limitPrice:float, 
+                           nonGuaranteed:bool):
     
         # ! [relativelimitcombo]
         order = Order()
@@ -836,7 +850,8 @@ class OrderSamples:
     #/ Products: FOP, OPT
     </summary>"""
     @staticmethod
-    def Volatility(action:str, quantity:float, volatilityPercent:float, volatilityType:int):
+    def Volatility(action:str, quantity:float, volatilityPercent:float, 
+                   volatilityType:int):
     
         # ! [volatility]
         order = Order()
@@ -854,7 +869,7 @@ class OrderSamples:
     def MarketFHedge(parentOrderId:int, action:str):
     
         #FX Hedge orders can only have a quantity of 0
-        order = MarketOrder(action, 0)
+        order = OrderSamples.MarketOrder(action, 0)
         order.parentId = parentOrderId
         order.hedgeType = "F"
         return order
@@ -862,9 +877,13 @@ class OrderSamples:
     #! [fhedge]
 
     @staticmethod
-    def PeggedToBenchmark(action:str, quantity:float, startingPrice:float, peggedChangeAmountDecrease:bool, peggedChangeAmount:float,
-                            referenceChangeAmount:float, referenceConId:int, referenceExchange:str, stockReferencePrice:float,  
-                            referenceContractLowerRange:float, referenceContractUpperRange:float):
+    def PeggedToBenchmark(action:str, quantity:float, startingPrice:float, 
+                           peggedChangeAmountDecrease:bool, 
+                           peggedChangeAmount:float,
+                           referenceChangeAmount:float, referenceConId:int, 
+                           referenceExchange:str, stockReferencePrice:float,  
+                           referenceContractLowerRange:float, 
+                           referenceContractUpperRange:float):
     
         #! [pegged_benchmark]
         order = Order()
@@ -896,11 +915,13 @@ class OrderSamples:
     
 
     @staticmethod
-    def AttachAdjustableToStop(parent:Order , attachedOrderStopPrice:float, triggerPrice:float, adjustStopPrice:float):
+    def AttachAdjustableToStop(parent:Order , attachedOrderStopPrice:float, 
+                               triggerPrice:float, adjustStopPrice:float):
     
         #! [adjustable_stop]
         # Attached order is a conventional STP order in opposite direction
-        order = Stop("SELL" if parent.action == "BUY" else "BUY", parent.totalQuantity, attachedOrderStopPrice)
+        order = Stop("SELL" if parent.action == "BUY" else "BUY", 
+                     parent.totalQuantity, attachedOrderStopPrice)
         order.parentId = parent.orderId
         #When trigger price is penetrated
         order.triggerPrice = triggerPrice
@@ -913,12 +934,14 @@ class OrderSamples:
     
 
     @staticmethod
-    def AttachAdjustableToStopLimit(parent:Order, attachedOrderStopPrice:float, triggerPrice:float, 
-                                    adjustedStopPrice:float, adjustedStopLimitPrice:float):
+    def AttachAdjustableToStopLimit(parent:Order, attachedOrderStopPrice:float, 
+                                    triggerPrice:float, adjustedStopPrice:float, 
+                                    adjustedStopLimitPrice:float):
     
         #! [adjustable_stop_limit]
         #Attached order is a conventional STP order
-        order = Stop("SELL" if parent.action == "BUY" else "BUY", parent.totalQuantity, attachedOrderStopPrice)
+        order = Stop("SELL" if parent.action == "BUY" else "BUY",
+                     parent.totalQuantity, attachedOrderStopPrice)
         order.parentId = parent.orderId
         #When trigger price is penetrated
         order.triggerPrice = triggerPrice
@@ -933,17 +956,19 @@ class OrderSamples:
     
 
     @staticmethod
-    def PriceCondition(conId:int, exchange:str, price:float, isMore:bool, isConjunction:bool):
+    def PriceCondition(triggerMethod:int, conId:int, exchange:str, price:float, 
+                        isMore:bool, isConjunction:bool):
     
         #! [price_condition]
         #Conditions have to be created via the OrderCondition.create 
-        priceCondition = OrderCondition.create(OrderConditionType.price)
+        priceCondition = order_condition.Create(OrderCondition.Price)
         #When this contract...
         priceCondition.conId = conId
         #traded on this exchange
         priceCondition.exchange = exchange
         #has a price above/below
         priceCondition.isMore = isMore
+        priceCondition.triggerMethod = triggerMethod
         #this quantity
         priceCondition.price = price
         #AND | OR next condition (will be ignored if no more conditions are added)
@@ -953,10 +978,11 @@ class OrderSamples:
     
 
     @staticmethod
-    def ExecutionCondition(symbol:str, secType:str, exchange:str, isConjunction:bool):
+    def ExecutionCondition(symbol:str, secType:str, exchange:str, 
+                           isConjunction:bool):
     
         #! [execution_condition]
-        execCondition = OrderCondition.create(OrderConditionType.execution)
+        execCondition = order_condition.Create(OrderCondition.Execution)
         #When an execution on symbol
         execCondition.symbol = symbol
         #at exchange
@@ -973,7 +999,7 @@ class OrderSamples:
     def MarginCondition(percent:int, isMore:bool, isConjunction:bool):
     
         #! [margin_condition]
-        marginCondition = OrderCondition.create(OrderConditionType.margin)
+        marginCondition = order_condition.Create(OrderCondition.Margin)
         #If margin is above/below
         marginCondition.isMore = isMore
         #given percent
@@ -985,10 +1011,11 @@ class OrderSamples:
     
 
     @staticmethod
-    def PercentageChangeCondition(pctChange:float, conId:int, exchange:str, isMore:bool, isConjunction:bool):
+    def PercentageChangeCondition(pctChange:float, conId:int, exchange:str, 
+                                  isMore:bool, isConjunction:bool):
     
         #! [percentage_condition]
-        pctChangeCondition = OrderCondition.create(OrderConditionType.percentCange)
+        pctChangeCondition = order_condition.Create(OrderCondition.PercentChange)
         #If there is a price percent change measured against last close price above or below...
         pctChangeCondition.isMore = isMore
         #this amount...
@@ -1007,7 +1034,7 @@ class OrderSamples:
     def TimeCondition(time:str, isMore:bool, isConjunction:bool):
     
         #! [time_condition]
-        timeCondition = OrderCondition.create(OrderConditionType.time)
+        timeCondition = order_condition.Create(OrderCondition.Time)
         #Before or after...
         timeCondition.isMore = isMore
         #this time..
@@ -1019,10 +1046,11 @@ class OrderSamples:
     
 
     @staticmethod
-    def VolumeCondition(conId:int, exchange:str, isMore:bool, volume:int, isConjunction:bool):
+    def VolumeCondition(conId:int, exchange:str, isMore:bool, volume:int, 
+                        isConjunction:bool):
     
         #! [volume_condition]
-        volCond = OrderCondition.create(OrderConditionType.volume)
+        volCond = order_condition.Create(OrderCondition.Volume)
         #Whenever contract...
         volCond.conId = conId
         #When traded at

@@ -23,15 +23,17 @@ TickerId = int
 OrderId  = int
 TagValueList = list
 
-faDataType = int
-faDataTypeEnum = Enum("GROUPS", "PROFILES", "ALIASES")
+FaDataType = int
+FaDataTypeEnum = Enum("N/A", "GROUPS", "PROFILES", "ALIASES")
 
 MarketDataType = int
-MarketDataTypeEnum = Enum("REALTIME", "FROZEN", "DELAYED", "DELAYED_FROZEN")
+MarketDataTypeEnum = Enum("N/A", "REALTIME", "FROZEN", "DELAYED", "DELAYED_FROZEN")
 
 SetOfString = set
 SetOfFloat = set
 ListOfOrder = list
+ListOfFamilyCode = list
+ListOfContractDescription = list
 
 
 class BarData(Object):

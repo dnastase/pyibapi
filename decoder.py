@@ -16,9 +16,11 @@ It will call the corresponding method from the Wrapper so that customer's code
 
 import inspect
 
+from object_implem import Object
 from message import IN, OUT
 from wrapper import *
 from order import Order
+from order import OrderComboLeg
 from contract import Contract
 from contract import UnderComp
 from contract import ComboLeg
@@ -30,25 +32,33 @@ from server_versions import *
 from utils import *
 from softdollartier import SoftDollarTier
 from ticktype import *
-
-
-#TODO: remove all semi-colons !!
+from tag_value import TagValue
+from scanner import ScanData
+from commission_report import CommissionReport
 
         
 
-#TODO: rm meth=None
-class HandleInfo:
+class HandleInfo(Object):
     def __init__(self, wrap=None, proc=None):
         self.wrapperMeth = wrap
         self.wrapperParams = None
         self.processMeth = proc
+        if wrap is None and proc is None:
+            raise ValueError("both wrap and proc can't be None")
+
+    def __str__(self):
+        s = "wrap:%s meth:%s prms:%s" % (self.wrapperParams,
+                self.processMsth, self.wrapperParams)
+        return s
 
 
-class Decoder:
+class Decoder(Object):
     def __init__(self, wrapper, serverVersion):
         self.wrapper = wrapper
         self.serverVersion = serverVersion
         self.discover_params()
+        self.print_params()
+
 
     def processTickPriceMsg(self, fields):
         sMsgId = next(fields)
@@ -166,7 +176,7 @@ class Decoder:
 
         order.outsideRth = decode(bool, fields) # ver 18 field
         order.hidden = decode(bool, fields) # ver 4 field
-        order.discretionaryAmt = decode(int, fields) # ver 4 field
+        order.discretionaryAmt = decode(float, fields) # ver 4 field
         order.goodAfterTime = decode(str, fields) # ver 5 field
 
         order.sharesAllocation = decode(str, fields) # deprecated ver 6 field
@@ -271,7 +281,7 @@ class Decoder:
             order.orderComboLegsCount = decode(int, fields)
             if order.orderComboLegsCount > 0:
                 order.orderComboLegs = []
-                for idxOrdLeg in range(orderComboLegsCount):
+                for idxOrdLeg in range(order.orderComboLegsCount):
                     orderComboLeg = OrderComboLeg()
                     orderComboLeg.price = decode(float, fields, SHOW_UNSET)
                     order.orderComboLegs.append(orderComboLeg)
@@ -280,7 +290,7 @@ class Decoder:
             order.smartComboRoutingParamsCount = decode(int, fields)
             if order.smartComboRoutingParamsCount > 0:
                 order.smartComboRoutingParams = []
-                for idxPrm in range(smartComboRoutingParamsCount):
+                for idxPrm in range(order.smartComboRoutingParamsCount):
                     tagValue = TagValue()
                     tagValue.tag = decode(str, fields)
                     tagValue.value = decode(str, fields)
@@ -332,9 +342,9 @@ class Decoder:
             order.algoStrategy = decode(str, fields)
             if order.algoStrategy:
                 order.algoParamsCount = decode(int, fields)
-                if algoParamsCount > 0:
+                if order.algoParamsCount > 0:
                     order.algoParams = []
-                    for idxAlgoPrm in range(algoParamsCount):
+                    for idxAlgoPrm in range(order.algoParamsCount):
                         tagValue = TagValue()
                         tagValue.tag = decode(str, fields)
                         tagValue.value = decode(str, fields)
@@ -374,11 +384,6 @@ class Decoder:
                 order.conditions = []
                 for idxCond in range(order.conditionsSize):
                     order.conditionType = decode(int, fields)
-
-                    #ibapi::shared_ptr<OrderCondition> item = ibapi::shared_ptr<OrderCondition>(OrderCondition::create((OrderCondition::OrderConditionType)conditionType))
-                    #if (!(ptr = item->readExternal(ptr, endPtr)))
-                    #        return 0
-
                     condition = order_condition.Create(order.conditionType)
                     condition.decode(fields)
                     order.conditions.append(condition)
@@ -564,6 +569,7 @@ class Decoder:
 
         for idxEl in range(numberOfElements):
             data = ScanData()
+            data.contract = ContractDetails()
 
             data.rank = decode(int, fields)
             data.contract.summary.conId = decode(int, fields) # ver 3 field
@@ -749,6 +755,21 @@ class Decoder:
 
         self.wrapper.deltaNeutralValidation(reqId, underComp)
 
+
+    def processCommissionReportMsg(self, fields):
+        sMsgId = next(fields)
+        version = decode(int, fields)
+
+        commissionReport = CommissionReport()
+        commissionReport.execId = decode(str, fields)
+        commissionReport.commission = decode(float, fields)
+        commissionReport.currency = decode(str, fields)
+        commissionReport.realizedPNL = decode(float, fields)
+        commissionReport.yield_ = decode(float, fields);
+        commissionReport.yieldRedemptionDate = decode(int, fields)
+
+        self.wrapper.commissionReport(commissionReport)
+     
  
     def processPositionDataMsg(self, fields):
         sMsgId = next(fields)
@@ -810,7 +831,7 @@ class Decoder:
         self.wrapper.positionMulti(reqId, account, modelCode, contract, position, avgCost)
                
 
-    def processSecurityDefinitionOptionalParameterMsg(self, fields):
+    def processSecurityDefinitionOptionParameterMsg(self, fields):
         sMsgId = next(fields)
 
         reqId = decode(int, fields)
@@ -831,15 +852,15 @@ class Decoder:
             strike = decode(float, fields)
             strikes.add(strike)
 
-        self.wrapper.securityDefinitionOptionalParameter(reqId, exchange, 
+        self.wrapper.securityDefinitionOptionParameter(reqId, exchange, 
             underlyingConId, tradingClass, multiplier, expirations, strikes)
 
 
-    def processSecurityDefinitionOptionalParameterEndMsg(self, fields):
+    def processSecurityDefinitionOptionParameterEndMsg(self, fields):
         sMsgId = next(fields)
 
         reqId = decode(int, fields)
-        self.wrapper.securityDefinitionOptionalParameterEnd(reqId)
+        self.wrapper.securityDefinitionOptionParameterEnd(reqId)
 
 
     def processSoftDollarTiersMsg(self, fields):
@@ -927,13 +948,14 @@ class Decoder:
     #TODO: show error msgs !
     def interpret_with_signature(self, fields, handleInfo):
         if handleInfo.wrapperParams is None:
-            LOGGER.debug("no param info")
+            LOGGER.debug("%s: no param info in ", fields, handleInfo)
             return
        
         nIgnoreFields = 2 #bypass msgId and versionId faster this way
         if len(fields) - nIgnoreFields != len(handleInfo.wrapperParams) - 1:
-            LOGGER.debug("diff len fields and params %d %d", len(fields), 
-                         len(handleInfo.wrapperParams))
+            LOGGER.error("diff len fields and params %d %d for fields: %s and handleInfo: %s", 
+                         len(fields), len(handleInfo.wrapperParams), fields,
+                         handleInfo)
             return 
 
         fieldIdx = nIgnoreFields
@@ -968,7 +990,7 @@ class Decoder:
         handleInfo = self.msgId2handleInfo.get(nMsgId, None)
 
         if handleInfo is None:
-            LOGGER.debug("no handleInfo")
+            LOGGER.debug("%s: no handleInfo", fields)
             return
        
         try:
@@ -1018,7 +1040,7 @@ class Decoder:
         IN.DELTA_NEUTRAL_VALIDATION: HandleInfo(proc=processDeltaNeutralValidationMsg), 
         IN.TICK_SNAPSHOT_END: HandleInfo(wrap=Wrapper.tickSnapshotEnd), 
         IN.MARKET_DATA_TYPE: HandleInfo(wrap=Wrapper.marketDataType), 
-        IN.COMMISSION_REPORT: HandleInfo(wrap=Wrapper.commissionReport), 
+        IN.COMMISSION_REPORT: HandleInfo(proc=processCommissionReportMsg), 
         IN.POSITION_DATA: HandleInfo(proc=processPositionDataMsg), 
         IN.POSITION_END: HandleInfo(wrap=Wrapper.positionEnd), 
         IN.ACCOUNT_SUMMARY: HandleInfo(wrap=Wrapper.accountSummary), 
@@ -1033,8 +1055,8 @@ class Decoder:
         IN.POSITION_MULTI_END: HandleInfo(wrap=Wrapper.positionMultiEnd), 
         IN.ACCOUNT_UPDATE_MULTI: HandleInfo(wrap=Wrapper.accountUpdateMulti), 
         IN.ACCOUNT_UPDATE_MULTI_END: HandleInfo(wrap=Wrapper.accountUpdateMultiEnd), 
-        IN.SECURITY_DEFINITION_OPTION_PARAMETER: HandleInfo(proc=processSecurityDefinitionOptionalParameterMsg), 
-        IN.SECURITY_DEFINITION_OPTION_PARAMETER_END: HandleInfo(proc=processSecurityDefinitionOptionalParameterEndMsg), 
+        IN.SECURITY_DEFINITION_OPTION_PARAMETER: HandleInfo(proc=processSecurityDefinitionOptionParameterMsg), 
+        IN.SECURITY_DEFINITION_OPTION_PARAMETER_END: HandleInfo(proc=processSecurityDefinitionOptionParameterEndMsg), 
         IN.SOFT_DOLLAR_TIERS: HandleInfo(proc=processSoftDollarTiersMsg), 
         IN.FAMILY_CODES: HandleInfo(proc=processFamilyCodesMsg), 
         IN.SYMBOL_SAMPLES: HandleInfo(proc=processSymbolSamplesMsg), 
