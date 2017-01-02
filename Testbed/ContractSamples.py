@@ -9,8 +9,6 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 
 import sys
 sys.path.append("../../../source/pythonclient")
-#TODO: rm this
-sys.path.append("../pythonclient")
 
 from contract import *
 
@@ -97,7 +95,7 @@ class ContractSamples:
     def Bond():
             #! [bond]
             contract = Contract()
-            contract.conId = 147554578
+            contract.conId = 29105549
             contract.exchange = "SMART"
             #! [bond]
             return contract

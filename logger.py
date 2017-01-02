@@ -30,6 +30,7 @@ logging.basicConfig(filename=time.strftime("log/pyibapi.%y%m%d_%H%M%S.log") ,
                     filemode="w",
                     level=logging.DEBUG, 
                     format=recfmt, datefmt=timefmt)
+#TODO: maybe we don't want to log at all (for speed); currently the code always does it
 LOGGER = logging.getLogger("pyibapi")
 
 console = logging.StreamHandler()

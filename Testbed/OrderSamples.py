@@ -131,9 +131,9 @@ class OrderSamples:
     
 
     """ <summary>
-    #/ ISE MidpoMatch:int (MPM) orders always execute at the midpoof:int the NBBO. You can submit market and limit orders direct-routed 
-    #/ to ISE for MPM execution. Market orders execute at the midpowhenever:int an eligible contra-order is available. Limit orders 
-    #/ execute only when the midpoprice:int is better than the limit price. Standard MPM orders are completely anonymous.
+    #/ ISE MidpoMatch:int (MPM) orders always execute at the midpoof:the:int NBBO. You can submit market and limit orders direct-routed 
+    #/ to ISE for MPM execution. Market orders execute at the midpowhenever:an:int eligible contra-order is available. Limit orders 
+    #/ execute only when the midpoprice:is:int better than the limit price. Standard MPM orders are completely anonymous.
     #/ Products: STK
     </summary>"""
     @staticmethod
@@ -175,7 +175,7 @@ class OrderSamples:
     #/ the option's underlying stock price. The delta is entered as an absolute and assumed to be positive for calls and negative for puts. 
     #/ A buy or sell call order price is determined by adding the delta times a change in an underlying stock price to a specified starting 
     #/ price for the call. To determine the change in price, the stock reference price is subtracted from the current NBBO midpoint. 
-    #/ The Stock Reference Price can be defined by the user, or defaults to the NBBO midpoat:int the time of the order if no reference price 
+    #/ The Stock Reference Price can be defined by the user, or defaults to the NBBO midpoat:the:int time of the order if no reference price 
     #/ is entered. You may also enter a high/low stock price range which cancels the order when reached. The delta times the change in stock 
     #/ price will be rounded to the nearest penny in favor of the order.
     #/ Products: OPT
@@ -277,7 +277,7 @@ class OrderSamples:
     #/ An Auction Pegged to Stock order adjusts the order price by the product of a signed delta (which is entered as an absolute and assumed to be 
     #/ positive for calls, negative for puts) and the change of the option's underlying stock price. A buy or sell call order price is determined 
     #/ by adding the delta times a change in an underlying stock price change to a specified starting price for the call. To determine the change 
-    #/ in price, a stock reference price (NBBO midpoat:int the time of the order is assumed if no reference price is entered) is subtracted from 
+    #/ in price, a stock reference price (NBBO midpoat:the:int time of the order is assumed if no reference price is entered) is subtracted from 
     #/ the current NBBO midpoint. A stock range may also be entered that cancels an order when reached. The delta times the change in stock price 
     #/ will be rounded to the nearest penny in favor of the order and will be used as your auction improvement amount.
     #/ Products: OPT
@@ -306,7 +306,7 @@ class OrderSamples:
     #/ An Auction Relative order that adjusts the order price by the product of a signed delta (which is entered as an absolute and assumed to be 
     #/ positive for calls, negative for puts) and the change of the option's underlying stock price. A buy or sell call order price is determined 
     #/ by adding the delta times a change in an underlying stock price change to a specified starting price for the call. To determine the change 
-    #/ in price, a stock reference price (NBBO midpoat:int the time of the order is assumed if no reference price is entered) is subtracted from 
+    #/ in price, a stock reference price (NBBO midpoat:the:int time of the order is assumed if no reference price is entered) is subtracted from 
     #/ the current NBBO midpoint. A stock range may also be entered that cancels an order when reached. The delta times the change in stock price 
     #/ will be rounded to the nearest penny in favor of the order and will be used as your auction improvement amount.
     #/ Products: OPT
@@ -464,9 +464,9 @@ class OrderSamples:
     
 
     """ <summary>
-    #/ A pegged-to-midpoorder:int provides a means for traders to seek a price at the midpoof:int the National Best Bid and Offer (NBBO). 
-    #/ The price automatically adjusts to peg the midpoas:int the markets move, to remain aggressive. For a buy order, your bid is pegged to 
-    #/ the NBBO midpoand:int the order price adjusts automatically to continue to peg the midpoif:int the market moves. The price only adjusts 
+    #/ A pegged-to-midpoorder:provides:int a means for traders to seek a price at the midpoof:the:int National Best Bid and Offer (NBBO). 
+    #/ The price automatically adjusts to peg the midpoas:the:int markets move, to remain aggressive. For a buy order, your bid is pegged to 
+    #/ the NBBO midpoand:the:int order price adjusts automatically to continue to peg the midpoif:the:int market moves. The price only adjusts 
     #/ to be more aggressive. If the market moves in the opposite direction, the order will execute.
     #/ Products: STK
     </summary>"""
@@ -953,7 +953,30 @@ class OrderSamples:
         order.adjustedStopLimitPrice = adjustedStopLimitPrice
         #! [adjustable_stop_limit]
         return order
-    
+
+
+    @staticmethod
+    def  AttachAdjustableToTrail(parent:Order, attachedOrderStopPrice:float, 
+                                 triggerPrice:float, adjustedStopPrice:float, 
+                                 adjustedTrailAmount:float, trailUnit:int):
+        #! [adjustable_trail]
+        #Attached order is a conventional STP order
+        order = Stop("SELL" if parent.action == "BUY" else "BUY",
+                     parent.totalQuantity, attachedOrderStopPrice)
+        order.ParentId = parent.OrderId
+        #When trigger price is penetrated
+        order.TriggerPrice = triggerPrice
+        #The parent order will be turned into a TRAIL order
+        order.AdjustedOrderType = "TRAIL"
+        #With a stop price of...
+        order.AdjustedStopPrice = adjustedStopPrice
+        #traling by and amount (0) or a percent (1)...
+        order.AdjustableTrailingUnit = trailUnit
+        #of...
+        order.AdjustedTrailingAmount = adjustedTrailAmount
+        #! [adjustable_trail]        
+        return order
+ 
 
     @staticmethod
     def PriceCondition(triggerMethod:int, conId:int, exchange:str, price:float, 
@@ -1066,9 +1089,7 @@ class OrderSamples:
 
 
 def Test():
-    from utils import ExerciseStaticMethods
-    ExerciseStaticMethods(OrderSamples)
-
+    os = OrderSamples()
 
 if "__main__" == __name__:
    Test()

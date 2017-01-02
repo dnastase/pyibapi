@@ -37,9 +37,6 @@ from ticktype import *
 from commission_report import CommissionReport
 
 
-#TODO: finish adding docstrings
-
-
 class Wrapper:
     def logAnswer(self, fnName, fnParams):
         #TODO: do this only if turned on, it's expensive
@@ -64,9 +61,22 @@ class Wrapper:
 
 
     def connectAck(self):
+        """ callback signifying completion of successful connection """
         self.logAnswer(crt_fn_name(), vars()) 
 
- 
+
+    def marketDataType(self, reqId:TickerId, marketDataType:int):
+        """TWS sends a marketDataType(type) callback to the API, where
+        type is set to Frozen or RealTime, to announce that market data has been
+        switched between frozen and real-time. This notification occurs only
+        when market data switches between real-time and frozen. The
+        marketDataType( ) callback accepts a reqId parameter and is sent per
+        every subscription because different contracts can generally trade on a
+        different schedule."""
+
+        self.logAnswer(crt_fn_name(), vars()) 
+  
+
     def tickPrice(self, reqId:TickerId , tickType:TickType, price:float, 
                   attrib:TickAttrib):
         """Market data tick price callback. Handles all price related ticks."""
@@ -87,18 +97,6 @@ class Wrapper:
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def marketDataType(self, reqId:TickerId, marketDataType:int):
-        """TWS sends a marketDataType(type) callback to the API, where
-        type is set to Frozen or RealTime, to announce that market data has been
-        switched between frozen and real-time. This notification occurs only
-        when market data switches between real-time and frozen. The
-        marketDataType( ) callback accepts a reqId parameter and is sent per
-        every subscription because different contracts can generally trade on a
-        different schedule."""
-
-        self.logAnswer(crt_fn_name(), vars()) 
- 
-
     def tickGeneric(self, reqId:TickerId, tickType:TickType, value:float):
         self.logAnswer(crt_fn_name(), vars()) 
 
@@ -111,6 +109,22 @@ class Wrapper:
                 formattedBasisPoints:str, totalDividends:float, 
                 holdDays:int, futureLastTradeDate:str, dividendImpact:float, 
                 dividendsToLastTradeDate:float):
+        self.logAnswer(crt_fn_name(), vars()) 
+        """ market data call back for Exchange for Physical 
+        tickerId -      The request's identifier.
+        tickType -      The type of tick being received.
+        basisPoints -   Annualized basis points, which is representative of 
+            the financing rate that can be directly compared to broker rates.
+        formattedBasisPoints -  Annualized basis points as a formatted string 
+            that depicts them in percentage form.
+        impliedFuture - The implied Futures price.
+        holdDays -  The number of hold days until the lastTradeDate of the EFP.
+        futureLastTradeDate -   The expiration date of the single stock future.
+        dividendImpact - The dividend impact upon the annualized basis points 
+            interest rate.
+        dividendsToLastTradeDate - The dividends expected until the expiration 
+            of the single stock future."""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
@@ -158,7 +172,6 @@ class Wrapper:
             for both pre and post trade margin and commission data."""
 
         self.logAnswer(crt_fn_name(), vars()) 
-        LOGGER.debug("Order: %s %s %d %f %s", contract.symbol, order.action, order.totalQuantity, order.lmtPrice, order.permId)
 
 
     def openOrderEnd(self):
@@ -166,7 +179,6 @@ class Wrapper:
 
         self.logAnswer(crt_fn_name(), vars()) 
         
-
 
     def connectionClosed(self):
         """This function is called when TWS closes the sockets
@@ -250,16 +262,48 @@ class Wrapper:
 
     def updateMktDepth(self, reqId:TickerId , position:int, operation:int,
                         side:int, price:float, size:int):
+        """Returns the order book.
+
+        tickerId -  the request's identifier
+        position -  the order book's row being updated
+        operation - how to refresh the row: 
+            0 = insert (insert this new order into the row identified by 'position')
+            1 = update (update the existing order in the row identified by 'position')
+            2 = delete (delete the existing order at the row identified by 'position').
+        side -  0 for ask, 1 for bid
+        price - the order's price
+        size -  the order's size"""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def updateMktDepthL2(self, reqId:TickerId , position:int, marketMaker:str,
                           operation:int, side:int, price:float, size:int):
+        """Returns the order book.
+
+        tickerId -  the request's identifier
+        position -  the order book's row being updated
+        marketMaker - the exchange holding the order
+        operation - how to refresh the row: 
+            0 = insert (insert this new order into the row identified by 'position')
+            1 = update (update the existing order in the row identified by 'position')
+            2 = delete (delete the existing order at the row identified by 'position').
+        side -  0 for ask, 1 for bid
+        price - the order's price
+        size -  the order's size"""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def updateNewsBulletin(self, msgId:int, msgType:int, newsMessage:str, 
                            originExch:str):
+        """ provides IB's bulletins 
+        msgId - the bulletin's identifier
+        msgType - one of: 1 - Regular news bulletin 2 - Exchange no longer 
+            available for trading 3 - Exchange is available for trading
+        message - the message
+        origExchange -    the exchange where the message comes from.  """
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
@@ -269,35 +313,101 @@ class Wrapper:
 
 
     def receiveFA(self, faData:FaDataType , cxml:str):
+        """ receives the Financial Advisor's configuration available in the TWS
+
+        faDataType - one of:
+            Groups: offer traders a way to create a group of accounts and apply
+                 a single allocation method to all accounts in the group.
+            Profiles: let you allocate shares on an account-by-account basis 
+                using a predefined calculation value.
+            Account Aliases: let you easily identify the accounts by meaningful
+                 names rather than account numbers.
+        faXmlData -  the xml-formatted configuration """
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def historicalData(self, reqId:TickerId , date:str, open:float, high:float, 
                        low:float, close:float, volume:int, barCount:int, 
                         WAP:float, hasGaps:int):
+        """ returns the requested historical data bars
+
+        reqId - the request's identifier
+        date  - the bar's date and time (either as a yyyymmss hh:mm:ssformatted
+             string or as system time according to the request)
+        open  - the bar's open point
+        high  - the bar's high point
+        low   - the bar's low point
+        close - the bar's closing point
+        volume - the bar's traded volume if available
+        count - the number of trades during the bar's timespan (only available 
+            for TRADES).
+        WAP -   the bar's Weighted Average Price
+        hasGaps  -indicates if the data has gaps or not. """
+
+        self.logAnswer(crt_fn_name(), vars()) 
+
+
+    def historicalDataEnd(self, reqId:int, start:str, end:str):
+        """ Marks the ending of the historical bars reception. """
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def scannerParameters(self, xml:str):
+        """ Provides the xml-formatted parameters available to create a market 
+        scanner.
+
+        xml -   the xml-formatted string with the available parameters."""
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def scannerData(self, reqId:int, rank:int, contractDetails:ContractDetails,
                      distance:str, benchmark:str, projection:str, legsStr:str):
+        """ Provides the data resulting from the market scanner request.
+
+        reqid - the request's identifier.
+        rank -  the ranking within the response of this bar.
+        contractDetails - the data's ContractDetails
+        distance -      according to query.
+        benchmark -     according to query.
+        projection -    according to query.
+        legStr - describes the combo legs when the scanner is returning EFP"""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def scannerDataEnd(self, reqId:int):
+        """ Indicates the scanner data reception has terminated.
+
+        reqId - the request's identifier"""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def realtimeBar(self, reqId:TickerId , time:int, open:float, high:float, 
                     low:float, close:float, volume:int, wap:float, 
                     count: int):
+        """ Updates the real time 5 seconds bars
+
+        reqId - the request's identifier
+        date  - the bar's date and time (either as a yyyymmss hh:mm:ss 
+            formatted string or as system time according to the request)
+        open  - the bar's open point
+        high  - the bar's high point
+        low   - the bar's low point
+        close - the bar's closing point
+        volume - the bar's traded volume if available
+        WAP   - the bar's Weighted Average Price
+        count - the number of trades during the bar's timespan (only available 
+            for TRADES)."""
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def currentTime(self, time:int):
+        """ Server's current time. This method will receive IB server's system 
+        time resulting after the invokation of reqCurrentTime. """
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
@@ -360,7 +470,7 @@ class Wrapper:
 
 
     def verifyMessageAPI(self, apiData:str):
-
+        """ Deprecated Function """
         self.logAnswer(crt_fn_name(), vars()) 
 
 
@@ -452,24 +562,50 @@ class Wrapper:
     def securityDefinitionOptionParameter(self, reqId:int, exchange:str,
         underlyingConId:int, tradingClass:str, multiplier:str, 
         expirations:SetOfString, strikes:SetOfFloat):
-        """ gets called w/ the future and option contracts for an underlying"""
+        """ Returns the option chain for an underlying on an exchange 
+        specified in reqSecDefOptParams There will be multiple callbacks to 
+        securityDefinitionOptionParameter if multiple exchanges are specified 
+        in reqSecDefOptParams
+
+        reqId - ID of the request initiating the callback
+        underlyingConId - The conID of the underlying security
+        tradingClass -  the option trading class
+        multiplier -    the option multiplier
+        expirations - a list of the expiries for the options of this underlying
+             on this exchange
+        strikes - a list of the possible strikes for options of this underlying 
+             on this exchange """
 
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def securityDefinitionOptionParameterEnd(self, reqId:int):
+        """ Called when all callbacks to securityDefinitionOptionParameter are 
+        complete
+
+        reqId - the ID used in the call to securityDefinitionOptionParameter """
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def softDollarTiers(self, reqId:int, tiers:list):
+        """ Called when receives Soft Dollar Tier configuration information
+
+        reqId - The request ID used in the call to EClient::reqSoftDollarTiers
+        tiers - Stores a list of SoftDollarTier that contains all Soft Dollar 
+            Tiers information """
+
         self.logAnswer(crt_fn_name(), vars()) 
 
 
     def familyCodes(self, familyCodes:ListOfFamilyCode):
+        """ returns array of family codes """
         self.logAnswer(crt_fn_name(), vars()) 
 
 
-    def symbolSamples(self, reqId:int, contractDescriptions:ListOfContractDescription):
+    def symbolSamples(self, reqId:int, 
+                      contractDescriptions:ListOfContractDescription):
+        """ returns array of sample contract descriptions """
         self.logAnswer(crt_fn_name(), vars()) 
 
 

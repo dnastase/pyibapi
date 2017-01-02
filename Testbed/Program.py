@@ -8,14 +8,12 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 """
 
 import sys
-sys.path.append("../../../source/pythonclient")
-#TODO: rm this
-sys.path.append("../pythonclient")
 import argparse
 import datetime
 import collections
 import inspect
 
+sys.path.append("../../../source/pythonclient")
 
 import wrapper
 from client import Client
@@ -62,7 +60,7 @@ class Activity(Object):
 class RequestMgr(Object):
     def __init__(self):
         #I will keep this simple even if slower for now: only one list of
-        # requests; finding will be done by linear search
+        # requests finding will be done by linear search
         self.requests = []
 
 
@@ -79,7 +77,7 @@ class TestClient(Client):
     def __init__(self, wrapper):
         Client.__init__(self, wrapper)
 
-        #how many times a method is called; to see test coverage
+        #how many times a method is called to see test coverage
         self.clntMeth2callCount = collections.defaultdict(int)
         self.clntMeth2reqIdIdx = collections.defaultdict(lambda: -1)
         self.reqId2nReq = collections.defaultdict(int)
@@ -216,6 +214,7 @@ class TestApp(TestClient, TestWrapper):
 
         #we can start now
         self.start()
+
 
     def start(self):
         if self.started:
@@ -769,9 +768,6 @@ class TestApp(TestClient, TestWrapper):
         self.reqContractDetails(211, ContractSamples.Bond())
         #! [reqcontractdetails]
 
-        #TODO: req details for a bond !!
-        
-
         #! [reqMatchingSymbols]
         self.reqMatchingSymbols(212, "IB")
         #! [reqMatchingSymbols]
@@ -838,7 +834,7 @@ class TestApp(TestClient, TestWrapper):
     #! [scannerparameters]
     def scannerParameters(self, xml:str):
         super().scannerParameters(xml)
-        open('scanner.xml', 'w').write(xml)
+        open('log/scanner.xml', 'w').write(xml)
     #! [scannerparameters]
         
 
@@ -955,7 +951,7 @@ class TestApp(TestClient, TestWrapper):
         bracket = OrderSamples.BracketOrder(self.nextOrderId(), "BUY", 100, 30, 40, 20)
         for o in bracket:
             self.placeOrder(o.orderId, ContractSamples.EuropeanStock(), o)
-            self.nextOrderId()  # need to advance this; we'll skip one extra oid, it's fine
+            self.nextOrderId()  # need to advance this we'll skip one extra oid, it's fine
         #! [bracketsubmit]
 
 
@@ -980,38 +976,45 @@ class TestApp(TestClient, TestWrapper):
         #! [algo_base_order]
 
         #! [arrivalpx]
-        AvailableAlgoParams.FillArrivalPriceParams(baseOrder, 0.1, "Aggressive", "09:00:00 CET", "16:00:00 CET", True, True)
+        AvailableAlgoParams.FillArrivalPriceParams(baseOrder, 0.1, 
+             "Aggressive", "09:00:00 CET", "16:00:00 CET", True, True, 100000)
         self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
         #! [arrivalpx]
 
 
         #! [darkice]
-        AvailableAlgoParams.FillDarkIceParams(baseOrder, 10, "09:00:00 CET", "16:00:00 CET", True)
+        AvailableAlgoParams.FillDarkIceParams(baseOrder, 10, 
+                                  "09:00:00 CET", "16:00:00 CET", True, 100000)
         self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
         #! [darkice]
 
 
         #! [ad]
         # The Time Zone in "startTime" and "endTime" attributes is ignored and always defaulted to GMT
-        AvailableAlgoParams.FillAccumulateDistributeParams(baseOrder, 10, 60, True, True, 1, True, True, "20161010-12:00:00 GMT", "20161010-16:00:00 GMT")
+        AvailableAlgoParams.FillAccumulateDistributeParams(baseOrder, 10, 60, 
+                            True, True, 1, True, True, 
+                            "20161010-12:00:00 GMT", "20161010-16:00:00 GMT")
         self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
         #! [ad]
 
 
         #! [twap]
-        AvailableAlgoParams.FillTwapParams(baseOrder, "Marketable", "09:00:00 CET", "16:00:00 CET", True)
+        AvailableAlgoParams.FillTwapParams(baseOrder, "Marketable", 
+                                 "09:00:00 CET", "16:00:00 CET", True, 100000)
         self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
         #! [twap]
 
 
         #! [vwap]
-        AvailableAlgoParams.FillVwapParams(baseOrder, 0.2, "09:00:00 CET", "16:00:00 CET", True, True)
+        AvailableAlgoParams.FillVwapParams(baseOrder, 0.2, 
+                           "09:00:00 CET", "16:00:00 CET", True, True, 100000)
         self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
         #! [vwap]
 
 
         #! [balanceimpactrisk]
-        AvailableAlgoParams.FillBalanceImpactRiskParams(baseOrder, 0.1, "Aggressive", True)
+        AvailableAlgoParams.FillBalanceImpactRiskParams(baseOrder, 0.1, 
+                                                        "Aggressive", True)
         self.placeOrder(self.nextOrderId(), ContractSamples.USOptionContract(), baseOrder)
         #! [balanceimpactrisk]
 
@@ -1025,6 +1028,36 @@ class TestApp(TestClient, TestWrapper):
         AvailableAlgoParams.FillAdaptiveParams(baseOrder, "Normal")
         self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
         #! [adaptive]
+
+        #! [closepx]
+        AvailableAlgoParams.FillClosePriceParams(baseOrder, 0.5, "Neutral", 
+                                                "12:00:00 EST", True, 100000)
+        self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
+        #! [closepx]
+
+        #! [pctvol]
+        AvailableAlgoParams.FillPctVolParams(baseOrder, 0.5, 
+                                "12:00:00 EST", "14:00:00 EST", True, 100000)
+        self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
+        #! [pctvol]               
+
+        #! [pctvolpx]
+        AvailableAlgoParams.FillPriceVariantPctVolParams(baseOrder, 
+            0.1, 0.05, 0.01, 0.2, "12:00:00 EST", "14:00:00 EST", True, 100000)
+        self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
+        #! [pctvolpx]
+
+        #! [pctvolsz]
+        AvailableAlgoParams.FillSizeVariantPctVolParams(baseOrder, 
+                        0.2, 0.4, "12:00:00 EST", "14:00:00 EST", True, 100000)
+        self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
+        #! [pctvolsz]
+
+        #! [pctvoltm]
+        AvailableAlgoParams.FillTimeVariantPctVolParams(baseOrder, 
+                        0.2, 0.4, "12:00:00 EST", "14:00:00 EST", True, 100000)
+        self.placeOrder(self.nextOrderId(), ContractSamples.USStockAtSmart(), baseOrder)
+        #! [pctvoltm] 
 
 
     @printWhenExecuting

@@ -10,7 +10,7 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 
 """
 Just a thin wrapper around a socket.
-It allows us to keep some other info w/ it.
+It allows us to keep some other info along with it.
 """
 
 
@@ -27,9 +27,6 @@ from logger import LOGGER
 #TODO: support SSL !!
 
 
-
-
-
 class Connection:
     def __init__(self, host, port):
         self.host = host
@@ -38,7 +35,7 @@ class Connection:
         self.wrapper = None
         self.lock = threading.Lock() 
 
-        #TODO: protect self.socket  !!
+        #TODO: protect self.socket w/ mutex or similar !!
 
     def connect(self):
         try:

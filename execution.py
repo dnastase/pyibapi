@@ -7,9 +7,6 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 """
 
 
-"""
-#TODO: not really sure what this class is conceptually. Figure out !
-"""
 
 from object_implem import Object
 

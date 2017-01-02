@@ -119,8 +119,7 @@ class Client(object):
         self.conn.connect()
         self.setConnState(Client.CONNECTING)
         
-        #TODO: make this nicer !!
-        #TODO: support async mode too ?
+        #TODO: support async mode
         
         v100prefix = "API\0"
         v100version = "v%d..%d" % (MIN_CLIENT_VER, MAX_CLIENT_VER)
@@ -130,13 +129,6 @@ class Client(object):
         msg2 = str.encode(v100prefix, 'ascii') + msg
         LOGGER.debug("REQUEST %s", msg2)
         self.conn.send_msg(msg2)
-
-        #buf = self.conn.recv_msg()
-        #LOGGER.debug("resp %s", buf)
-        #(size, text, rest) = comm.read_msg(buf)
-        #LOGGER.debug("size %d text %s rest:%s|", size, text, rest)
-        #fields = comm.read_fields(text)
-        #LOGGER.debug("fields %s", fields)
 
         self.decoder = decoder.Decoder(self.wrapper, self.serverVersion())
         fields = []
@@ -395,7 +387,6 @@ class Client(object):
                         make_field( comboLeg.action),
                         make_field( comboLeg.exchange)]
 
-        #TODO: figure out if the below should be in "if BAG" branch
         if self.serverVersion() >= MIN_SERVER_VER_UNDER_COMP:
             if contract.underComp:
                 flds += [make_field(True),

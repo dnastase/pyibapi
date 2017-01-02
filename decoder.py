@@ -685,8 +685,7 @@ class Decoder(Object):
         #assert len(bars() == itemCount
 
         # send end of dataset marker
-        finishedStr = "finished-" + startDateStr + "-" + endDateStr
-        self.wrapper.historicalData(reqId, finishedStr, -1, -1, -1, -1, -1, -1, -1, 0)
+        self.wrapper.historicalDataEnd(reqId, startDateStr, endDateStr)
 
 
  
@@ -945,7 +944,6 @@ class Decoder(Object):
                          LOGGER.debug("\tparam %s %s %s", pname, param.name, param.annotation)
                     
 
-    #TODO: show error msgs !
     def interpret_with_signature(self, fields, handleInfo):
         if handleInfo.wrapperParams is None:
             LOGGER.debug("%s: no param info in ", fields, handleInfo)

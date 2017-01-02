@@ -251,9 +251,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-#TODO: create test that dynamically iterates all the methods of client.py and 
-# finds the corresponding test and runs it; this will ensure that added
-# methods w/out associated test will not be silently "passed"
-
-#TODO: see that we receive fields like 1.7976931348623157E30 DBL_MAX !!
 

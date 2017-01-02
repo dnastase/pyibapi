@@ -9,8 +9,6 @@ subject to the terms and conditions of the IB API Non-Commercial License or the
 
 import sys
 sys.path.append("../../../source/pythonclient")
-#TODO: rm this
-sys.path.append("../pythonclient")
 
 
 from object_implem import Object 
