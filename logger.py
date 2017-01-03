@@ -23,14 +23,12 @@ recfmt = '(%(threadName)s) %(asctime)s.%(msecs)03d %(levelname)s %(filename)s:%(
 
 timefmt = '%y%m%d_%H:%M:%S'
 
-#TODO: the choice if to rewrite log should possibly come from cmd line switch
 #logging.basicConfig( level=logging.DEBUG, 
 #                    format=recfmt, datefmt=timefmt)
 logging.basicConfig(filename=time.strftime("log/pyibapi.%y%m%d_%H%M%S.log") , 
                     filemode="w",
-                    level=logging.DEBUG, 
+                    level=logging.INFO, 
                     format=recfmt, datefmt=timefmt)
-#TODO: maybe we don't want to log at all (for speed); currently the code always does it
 LOGGER = logging.getLogger("pyibapi")
 
 console = logging.StreamHandler()
@@ -39,5 +37,4 @@ console.setLevel(logging.ERROR)
 
 LOGGER.addHandler(console)
 
-#TODO:logging module is SLOW !
 

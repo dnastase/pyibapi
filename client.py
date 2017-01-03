@@ -17,6 +17,7 @@ The user just needs to override Wrapper methods to receive the answers.
 """
 
 import time
+import logging
 from queue import Queue
 
 from common import UNSET_INTEGER, UNSET_DOUBLE
@@ -74,24 +75,21 @@ class Client(object):
         LOGGER.debug("%s connState: %s -> %s" % (id(self), _connState,
                                                  self.connState))
 
-
     def send_msg(self, msg):
         full_msg = comm.make_msg(msg)
-        #TODO: figure out how to log correctly even if methods are decorated
-        # (see TestClient countReqId)
-        LOGGER.debug("%s %s %s", "SENDING", crt_fn_name(2), full_msg)
+        LOGGER.info("%s %s %s", "SENDING", crt_fn_name(1), full_msg)
         self.conn.send_msg(full_msg)
  
 
     def logRequest(self, fnName, fnParams):
-        #TODO: do this only if turned on, it's expensive
-        if 'self' in fnParams:
-            prms = dict(fnParams)
-            del prms['self']
-        else:
-            prms = fnParams
-        LOGGER.debug("REQUEST %s %s", fnName, prms)
- 
+        if LOGGER.isEnabledFor(logging.INFO):
+            if 'self' in fnParams:
+                prms = dict(fnParams)
+                del prms['self']
+            else:
+                prms = fnParams
+            LOGGER.info("REQUEST %s %s", fnName, prms)
+     
 
     def connect(self, host, port, clientId):
         """This function must be called before any other. There is no
@@ -218,7 +216,6 @@ class Client(object):
         except:
             raise
         finally:
-            #TODO: figure out how to terminate the other reader thread 
             print("terminating thread")
             print("disconnecting")
             self.disconnect()        

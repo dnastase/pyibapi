@@ -23,6 +23,7 @@ server and client.
 
 """
 
+import logging
 
 from common import * 
 from utils import *
@@ -39,13 +40,13 @@ from commission_report import CommissionReport
 
 class Wrapper:
     def logAnswer(self, fnName, fnParams):
-        #TODO: do this only if turned on, it's expensive
-        if 'self' in fnParams:
-            prms = dict(fnParams)
-            del prms['self']
-        else:
-            prms = fnParams
-        LOGGER.debug("ANSWER %s %s", fnName, prms)
+        if LOGGER.isEnabledFor(logging.INFO):
+            if 'self' in fnParams:
+                prms = dict(fnParams)
+                del prms['self']
+            else:
+                prms = fnParams
+            LOGGER.info("ANSWER %s %s", fnName, prms)
 
 
     def error(self, reqId:TickerId, errorCode:int, errorString:str):

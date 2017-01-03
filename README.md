@@ -38,10 +38,10 @@ Implementation notes:
 * the *Decoder* has two ways of handling a message (esentially decoding the fields)
     + some message very neatly map to a function call; meaning that the number of fields and order are the same as the method parameters. For example: Wrapper.tickSize(). In this case a simple mapping is made between the incoming msg id and the Wrapper method:
 
-        IN.TICK_SIZE: HandleInfo(wrap=Wrapper.tickSize), 
+    IN.TICK_SIZE: HandleInfo(wrap=Wrapper.tickSize), 
 
     + other messages are more complex, depend on version number heavily or need field massaging. In this case the incoming message id is mapped to a processing function that will do all that and call the Wrapper method at the end. For example:
 
-        IN.TICK_PRICE: HandleInfo(proc=processTickPriceMsg), 
+    IN.TICK_PRICE: HandleInfo(proc=processTickPriceMsg), 
 
 

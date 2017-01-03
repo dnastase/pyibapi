@@ -35,7 +35,6 @@ class Connection:
         self.wrapper = None
         self.lock = threading.Lock() 
 
-        #TODO: protect self.socket w/ mutex or similar !!
 
     def connect(self):
         try:

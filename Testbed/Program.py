@@ -12,6 +12,7 @@ import argparse
 import datetime
 import collections
 import inspect
+import logging
 
 sys.path.append("../../../source/pythonclient")
 
@@ -100,16 +101,18 @@ class TestClient(Client):
         
         methods = inspect.getmembers(Client, inspect.isfunction)
         for (methName, meth) in methods:
-            self.clntMeth2callCount[methName] = 0
-            #LOGGER.debug("meth %s", name)
-            sig = inspect.signature(meth)
-            for (idx, pnameNparam) in enumerate(sig.parameters.items()):
-                (paramName, param) = pnameNparam
-                if paramName == "reqId":
-                    self.clntMeth2reqIdIdx[methName] = idx
+            if methName != "send_msg":
+            #don't screw up the nice automated logging in the send_msg()
+                self.clntMeth2callCount[methName] = 0
+                #LOGGER.debug("meth %s", name)
+                sig = inspect.signature(meth)
+                for (idx, pnameNparam) in enumerate(sig.parameters.items()):
+                    (paramName, param) = pnameNparam
+                    if paramName == "reqId":
+                        self.clntMeth2reqIdIdx[methName] = idx
 
-            setattr(TestClient, methName, self.countReqId(methName, meth))
-     
+                setattr(TestClient, methName, self.countReqId(methName, meth))
+         
         #print("TestClient.clntMeth2reqIdIdx", self.clntMeth2reqIdIdx)
 
 
@@ -145,7 +148,7 @@ class TestWrapper(wrapper.Wrapper):
             sig = inspect.signature(meth)
             for (idx, pnameNparam) in enumerate(sig.parameters.items()):
                 (paramName, param) = pnameNparam
-                # we want to count the errors as error not answer
+                # we want to count the errors as 'error' not 'answer'
                 if 'error' not in methName and paramName == "reqId":
                     self.wrapMeth2reqIdIdx[methName] = idx
 
@@ -1355,8 +1358,7 @@ def main():
     #print(args)
                                                                                                                                            
     LOGGER.debug("now is %s", datetime.datetime.now())
-    import logging
-    #LOGGER.setLevel(logging.ERROR)
+    LOGGER.setLevel(logging.DEBUG)
 
     #enable logging when member vars are assigned
     import utils 
